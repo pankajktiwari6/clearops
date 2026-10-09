@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class TeamCreate(BaseModel):
-    """Payload for creating a clearops.Team row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Teams row (identity key and audit columns are generated)."""
 
-    team_name: str | None = None
+    team_name: str
     team_mission: str | None = None
     team_lead: str | None = None
     team_members: str | None = None
@@ -19,7 +19,7 @@ class TeamCreate(BaseModel):
 
 
 class TeamUpdate(BaseModel):
-    """Partial update of a clearops.Team row -- every field optional."""
+    """Partial update of a gold.ClearOps_Teams row -- every field optional."""
 
     team_name: str | None = None
     team_mission: str | None = None
@@ -34,7 +34,7 @@ class TeamResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
     team_id: int = Field(validation_alias="TeamId")
-    team_name: str | None = Field(default=None, validation_alias="TeamName")
+    team_name: str = Field(validation_alias="TeamName")
     team_mission: str | None = Field(default=None, validation_alias="TeamMission")
     team_lead: str | None = Field(default=None, validation_alias="TeamLead")
     team_members: str | None = Field(default=None, validation_alias="TeamMembers")

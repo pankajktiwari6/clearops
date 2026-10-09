@@ -7,42 +7,42 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AdminIntegrationStatusCreate(BaseModel):
-    """Payload for creating a clearops.AdminIntegrationStatus row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Admin_IntegrationStatus row (identity key and audit columns are generated)."""
 
-    system: str | None = None
+    system: str
     last_sync: datetime | None = None
     status: str | None = None
-    record_captured: str | None = None
+    record_captured: int | None = None
     date_time: datetime | None = None
 
 
 class AdminIntegrationStatusUpdate(BaseModel):
-    """Partial update of a clearops.AdminIntegrationStatus row -- every field optional."""
+    """Partial update of a gold.ClearOps_Admin_IntegrationStatus row -- every field optional."""
 
     system: str | None = None
     last_sync: datetime | None = None
     status: str | None = None
-    record_captured: str | None = None
+    record_captured: int | None = None
     date_time: datetime | None = None
 
 
 class AdminIntegrationStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
-    system: str | None = Field(default=None, validation_alias="System")
+    sys_integration_id: int = Field(validation_alias="SysIntegrationId")
+    system: str = Field(validation_alias="System")
     last_sync: datetime | None = Field(default=None, validation_alias="LastSync")
     status: str | None = Field(default=None, validation_alias="Status")
-    record_captured: str | None = Field(default=None, validation_alias="RecordCaptured")
-    sys_integration_id: int = Field(validation_alias="SysIntegrationId")
+    record_captured: int | None = Field(default=None, validation_alias="RecordCaptured")
     date_time: datetime | None = Field(default=None, validation_alias="DateTime")
 
 
 # Fields the AdminIntegrationStatus grid may sort by (server-side).
 AdminIntegrationStatusSortField = Literal[
+    "sys_integration_id",
     "system",
     "last_sync",
     "status",
     "record_captured",
-    "sys_integration_id",
     "date_time",
 ]

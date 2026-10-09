@@ -1,21 +1,20 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, String
+from sqlalchemy import DateTime, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class Page(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_Page'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class Page(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_Page in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "Page"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_Page"
+    __table_args__ = {"schema": "gold"}
 
-    RowId: Mapped[int] = mapped_column("Row_Id", BigInteger, primary_key=True)
-    PageNumber: Mapped[str | None] = mapped_column("Page_Number", String(255))
-    PageName: Mapped[str | None] = mapped_column("Page_Name", String(150))
-    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime)
+    RowId: Mapped[int] = mapped_column("Row_Id", Integer, primary_key=True)
+    PageNumber: Mapped[int | None] = mapped_column("Page_Number", Integer)
+    PageName: Mapped[str] = mapped_column("Page_Name", String(200))
+    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime, server_default=func.sysutcdatetime())

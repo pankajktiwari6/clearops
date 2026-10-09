@@ -7,17 +7,17 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PageCreate(BaseModel):
-    """Payload for creating a clearops.Page row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Page row (identity key and audit columns are generated)."""
 
-    page_number: str | None = None
-    page_name: str | None = None
+    page_name: str
+    page_number: int | None = None
     date_time: datetime | None = None
 
 
 class PageUpdate(BaseModel):
-    """Partial update of a clearops.Page row -- every field optional."""
+    """Partial update of a gold.ClearOps_Page row -- every field optional."""
 
-    page_number: str | None = None
+    page_number: int | None = None
     page_name: str | None = None
     date_time: datetime | None = None
 
@@ -26,8 +26,8 @@ class PageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
     row_id: int = Field(validation_alias="RowId")
-    page_number: str | None = Field(default=None, validation_alias="PageNumber")
-    page_name: str | None = Field(default=None, validation_alias="PageName")
+    page_number: int | None = Field(default=None, validation_alias="PageNumber")
+    page_name: str = Field(validation_alias="PageName")
     date_time: datetime | None = Field(default=None, validation_alias="DateTime")
 
 

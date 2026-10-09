@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectTimePlannerCreate(BaseModel):
-    """Payload for creating a clearops.ProjectTimePlanner row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_ProjectTimePlanner row (identity key and audit columns are generated)."""
 
     task_id: int | None = None
     resource_id: int | None = None
@@ -17,12 +17,12 @@ class ProjectTimePlannerCreate(BaseModel):
     end_time: time | None = None
     plan_hours: float | None = None
     description: str | None = None
-    completed_status: float | None = None
+    completed_status: str | None = None
     is_active: bool | None = None
 
 
 class ProjectTimePlannerUpdate(BaseModel):
-    """Partial update of a clearops.ProjectTimePlanner row -- every field optional."""
+    """Partial update of a gold.ClearOps_ProjectTimePlanner row -- every field optional."""
 
     task_id: int | None = None
     resource_id: int | None = None
@@ -32,7 +32,7 @@ class ProjectTimePlannerUpdate(BaseModel):
     end_time: time | None = None
     plan_hours: float | None = None
     description: str | None = None
-    completed_status: float | None = None
+    completed_status: str | None = None
     is_active: bool | None = None
 
 
@@ -48,7 +48,7 @@ class ProjectTimePlannerResponse(BaseModel):
     end_time: time | None = Field(default=None, validation_alias="EndTime")
     plan_hours: float | None = Field(default=None, validation_alias="PlanHours")
     description: str | None = Field(default=None, validation_alias="Description")
-    completed_status: float | None = Field(default=None, validation_alias="CompletedStatus")
+    completed_status: str | None = Field(default=None, validation_alias="CompletedStatus")
     is_active: bool | None = Field(default=None, validation_alias="IsActive")
 
 

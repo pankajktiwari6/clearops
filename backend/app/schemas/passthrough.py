@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PassthroughCreate(BaseModel):
-    """Payload for creating a clearops.Passthrough row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Passthrough row (identity key and audit columns are generated)."""
 
     contract_number: str | None = None
     project_id: int | None = None
@@ -20,7 +20,7 @@ class PassthroughCreate(BaseModel):
 
 
 class PassthroughUpdate(BaseModel):
-    """Partial update of a clearops.Passthrough row -- every field optional."""
+    """Partial update of a gold.ClearOps_Passthrough row -- every field optional."""
 
     contract_number: str | None = None
     project_id: int | None = None
@@ -35,6 +35,7 @@ class PassthroughUpdate(BaseModel):
 class PassthroughResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
+    pass_through_id: int = Field(validation_alias="PassThroughId")
     contract_number: str | None = Field(default=None, validation_alias="ContractNumber")
     project_id: int | None = Field(default=None, validation_alias="ProjectID")
     transaction_id: int | None = Field(default=None, validation_alias="TransactionId")
@@ -43,11 +44,11 @@ class PassthroughResponse(BaseModel):
     expenditure_item_date: date | None = Field(default=None, validation_alias="ExpenditureItemDate")
     transaction_row_cost: float | None = Field(default=None, validation_alias="TransactionRowCost")
     transaction_currency: str | None = Field(default=None, validation_alias="TransactionCurrency")
-    pass_through_id: int = Field(validation_alias="PassThroughId")
 
 
 # Fields the Passthrough grid may sort by (server-side).
 PassthroughSortField = Literal[
+    "pass_through_id",
     "contract_number",
     "project_id",
     "transaction_id",
@@ -56,5 +57,4 @@ PassthroughSortField = Literal[
     "expenditure_item_date",
     "transaction_row_cost",
     "transaction_currency",
-    "pass_through_id",
 ]

@@ -7,18 +7,18 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class LogCreate(BaseModel):
-    """Payload for creating a clearops.Log row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Logs_table row (identity key and audit columns are generated)."""
 
     sys_integration_id: int | None = None
-    cornjobrun_id: int | None = None
+    cornjob_run_id: str | None = None
     date_time: datetime | None = None
 
 
 class LogUpdate(BaseModel):
-    """Partial update of a clearops.Log row -- every field optional."""
+    """Partial update of a gold.ClearOps_Logs_table row -- every field optional."""
 
     sys_integration_id: int | None = None
-    cornjobrun_id: int | None = None
+    cornjob_run_id: str | None = None
     date_time: datetime | None = None
 
 
@@ -27,7 +27,7 @@ class LogResponse(BaseModel):
 
     log_id: int = Field(validation_alias="LogId")
     sys_integration_id: int | None = Field(default=None, validation_alias="SysIntegrationId")
-    cornjobrun_id: int | None = Field(default=None, validation_alias="CornjobrunId")
+    cornjob_run_id: str | None = Field(default=None, validation_alias="CornjobRunId")
     date_time: datetime | None = Field(default=None, validation_alias="DateTime")
 
 
@@ -35,6 +35,6 @@ class LogResponse(BaseModel):
 LogSortField = Literal[
     "log_id",
     "sys_integration_id",
-    "cornjobrun_id",
+    "cornjob_run_id",
     "date_time",
 ]

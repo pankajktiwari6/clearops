@@ -1,26 +1,25 @@
 from datetime import date
 
-from sqlalchemy import BigInteger, Date, Numeric, String
+from sqlalchemy import BigInteger, Date, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class Passthrough(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_Passthrough'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class Passthrough(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_Passthrough in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "Passthrough"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_Passthrough"
+    __table_args__ = {"schema": "gold"}
 
-    ContractNumber: Mapped[str | None] = mapped_column(String(255))
-    ProjectID: Mapped[int | None] = mapped_column("Project_ID", BigInteger)
+    PassThroughId: Mapped[int] = mapped_column("Pass_Through_Id", BigInteger, primary_key=True)
+    ContractNumber: Mapped[str | None] = mapped_column(String(450))
+    ProjectID: Mapped[int | None] = mapped_column("Project_ID", BigInteger, ForeignKey("gold.Project_Master.Project_Id"))
     TransactionId: Mapped[int | None] = mapped_column(BigInteger)
-    SupplierEmployeeName: Mapped[str | None] = mapped_column("Supplier/EmployeeName", String(150))
-    SupplierInvoiceNumber: Mapped[str | None] = mapped_column(String(255))
+    SupplierEmployeeName: Mapped[str | None] = mapped_column("Supplier_EmployeeName", String(450))
+    SupplierInvoiceNumber: Mapped[str | None] = mapped_column(String(200))
     ExpenditureItemDate: Mapped[date | None] = mapped_column(Date)
     TransactionRowCost: Mapped[float | None] = mapped_column(Numeric(18, 2))
-    TransactionCurrency: Mapped[str | None] = mapped_column(String(255))
-    PassThroughId: Mapped[int] = mapped_column("Pass_Through_Id", BigInteger, primary_key=True)
+    TransactionCurrency: Mapped[str | None] = mapped_column(String(10))

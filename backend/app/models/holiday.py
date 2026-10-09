@@ -1,22 +1,24 @@
 from datetime import date
+from uuid import UUID
 
-from sqlalchemy import BigInteger, Date, String
+from sqlalchemy import Date, Integer, LargeBinary, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class Holiday(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_Holiday'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class Holiday(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_Holiday in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "Holiday"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_Holiday"
+    __table_args__ = {"schema": "gold"}
 
-    Country: Mapped[str | None] = mapped_column(String(150))
-    HolidayDate: Mapped[date | None] = mapped_column(Date)
-    Comment: Mapped[str | None] = mapped_column(String(255))
-    HolidayId: Mapped[int] = mapped_column("Holiday_Id", BigInteger, primary_key=True)
-    HolidayName: Mapped[str | None] = mapped_column("Holiday_Name", String(150))
+    HolidayId: Mapped[int] = mapped_column("Holiday_Id", Integer, primary_key=True)
+    Country: Mapped[str] = mapped_column(String(100))
+    HolidayDate: Mapped[date] = mapped_column(Date)
+    Comment: Mapped[str | None] = mapped_column(String(500))
+    HolidayName: Mapped[str | None] = mapped_column("Holiday_Name", String(200))
+    SourceRowHash: Mapped[bytes | None] = mapped_column(LargeBinary)
+    PipelineRunId: Mapped[UUID | None] = mapped_column(Uuid)

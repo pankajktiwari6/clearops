@@ -1,28 +1,27 @@
 from datetime import date, time
 
-from sqlalchemy import BigInteger, Boolean, Date, Numeric, String, Time
+from sqlalchemy import BigInteger, Boolean, Date, ForeignKey, Numeric, String, Text, Time, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class ProjectTimePlanner(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_ProjectTimePlanner'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class ProjectTimePlanner(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_ProjectTimePlanner in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "ProjectTimePlanner"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_ProjectTimePlanner"
+    __table_args__ = {"schema": "gold"}
 
     ProjectTimePannerId: Mapped[int] = mapped_column("Project_Time_Panner_id", BigInteger, primary_key=True)
-    TaskID: Mapped[int | None] = mapped_column("Task_ID", BigInteger)
-    ResourceId: Mapped[int | None] = mapped_column("Resource_Id", BigInteger)
+    TaskID: Mapped[int | None] = mapped_column("Task_ID", BigInteger, ForeignKey("gold.ProjectWBS.Project_WBS_Id"))
+    ResourceId: Mapped[int | None] = mapped_column("Resource_Id", BigInteger, ForeignKey("gold.Resources.Resource_ID"))
     StartDate: Mapped[date | None] = mapped_column(Date)
     EndDate: Mapped[date | None] = mapped_column(Date)
     StartTime: Mapped[time | None] = mapped_column(Time)
     EndTime: Mapped[time | None] = mapped_column(Time)
-    PlanHours: Mapped[float | None] = mapped_column(Numeric(18, 2))
-    Description: Mapped[str | None] = mapped_column(String(255))
-    CompletedStatus: Mapped[float | None] = mapped_column(Numeric(18, 2))
-    IsActive: Mapped[bool | None] = mapped_column(Boolean)
+    PlanHours: Mapped[float | None] = mapped_column(Numeric(9, 2))
+    Description: Mapped[str | None] = mapped_column(Text)
+    CompletedStatus: Mapped[str | None] = mapped_column(String(30))
+    IsActive: Mapped[bool] = mapped_column(Boolean, server_default=text("1"))

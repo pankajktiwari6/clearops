@@ -6,14 +6,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RoleCreate(BaseModel):
-    """Payload for creating a clearops.Role row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_Role row (identity key and audit columns are generated)."""
 
-    role_name: str | None = None
+    role_name: str
     role_type: str | None = None
 
 
 class RoleUpdate(BaseModel):
-    """Partial update of a clearops.Role row -- every field optional."""
+    """Partial update of a gold.ClearOps_Role row -- every field optional."""
 
     role_name: str | None = None
     role_type: str | None = None
@@ -22,14 +22,14 @@ class RoleUpdate(BaseModel):
 class RoleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
-    role_name: str | None = Field(default=None, validation_alias="RoleName")
-    role_type: str | None = Field(default=None, validation_alias="RoleType")
     role_id: int = Field(validation_alias="RoleId")
+    role_name: str = Field(validation_alias="RoleName")
+    role_type: str | None = Field(default=None, validation_alias="RoleType")
 
 
 # Fields the Role grid may sort by (server-side).
 RoleSortField = Literal[
+    "role_id",
     "role_name",
     "role_type",
-    "role_id",
 ]

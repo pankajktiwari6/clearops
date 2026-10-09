@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectCreate(BaseModel):
-    """Payload for creating a gold.Project row (primary key is generated)."""
+    """Payload for creating a gold.Project_Master row (identity key and audit columns are generated)."""
 
-    project_number: str | None = None
+    project_number: str
     upc: str | None = None
     project_name: str | None = None
     contract_number: str | None = None
@@ -32,7 +32,7 @@ class ProjectCreate(BaseModel):
     description: str | None = None
     project_value: float | None = None
     status: str | None = None
-    charge_scale: float | None = None
+    charge_scale: str | None = None
     percent_complete: float | None = None
     project_manager_hrid: str | None = None
     oversight_director_hrid: str | None = None
@@ -47,7 +47,7 @@ class ProjectCreate(BaseModel):
 
 
 class ProjectUpdate(BaseModel):
-    """Partial update of a gold.Project row -- every field optional."""
+    """Partial update of a gold.Project_Master row -- every field optional."""
 
     project_number: str | None = None
     upc: str | None = None
@@ -72,7 +72,7 @@ class ProjectUpdate(BaseModel):
     description: str | None = None
     project_value: float | None = None
     status: str | None = None
-    charge_scale: float | None = None
+    charge_scale: str | None = None
     percent_complete: float | None = None
     project_manager_hrid: str | None = None
     oversight_director_hrid: str | None = None
@@ -90,7 +90,7 @@ class ProjectResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
     project_id: int = Field(validation_alias="ProjectId")
-    project_number: str | None = Field(default=None, validation_alias="ProjectNumber")
+    project_number: str = Field(validation_alias="ProjectNumber")
     upc: str | None = Field(default=None, validation_alias="UPC")
     project_name: str | None = Field(default=None, validation_alias="ProjectName")
     contract_number: str | None = Field(default=None, validation_alias="ContractNumber")
@@ -113,7 +113,7 @@ class ProjectResponse(BaseModel):
     description: str | None = Field(default=None, validation_alias="Description")
     project_value: float | None = Field(default=None, validation_alias="ProjectValue")
     status: str | None = Field(default=None, validation_alias="Status")
-    charge_scale: float | None = Field(default=None, validation_alias="ChargeScale")
+    charge_scale: str | None = Field(default=None, validation_alias="ChargeScale")
     percent_complete: float | None = Field(default=None, validation_alias="PercentComplete")
     project_manager_hrid: str | None = Field(default=None, validation_alias="ProjectManagerHRID")
     oversight_director_hrid: str | None = Field(default=None, validation_alias="OversightDirectorHRID")

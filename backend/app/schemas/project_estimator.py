@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectEstimatorCreate(BaseModel):
-    """Payload for creating a gold.ProjectEstimator row (primary key is generated)."""
+    """Payload for creating a gold.ProjectEstimator row (identity key and audit columns are generated)."""
 
     task_id: int | None = None
     job_title: str | None = None
@@ -44,8 +44,8 @@ class ProjectEstimatorUpdate(BaseModel):
 class ProjectEstimatorResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
-    task_id: int | None = Field(default=None, validation_alias="TaskID")
     project_estimater_id: int = Field(validation_alias="ProjectEstimaterId")
+    task_id: int | None = Field(default=None, validation_alias="TaskID")
     job_title: str | None = Field(default=None, validation_alias="JobTitle")
     task_name: str | None = Field(default=None, validation_alias="TaskName")
     qty: float | None = Field(default=None, validation_alias="QTY")
@@ -62,8 +62,8 @@ class ProjectEstimatorResponse(BaseModel):
 
 # Fields the ProjectEstimator grid may sort by (server-side).
 ProjectEstimatorSortField = Literal[
-    "task_id",
     "project_estimater_id",
+    "task_id",
     "job_title",
     "task_name",
     "qty",

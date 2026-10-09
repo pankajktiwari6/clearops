@@ -1,23 +1,22 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, String
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class Permission(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_Permission'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class Permission(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_Permission in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "Permission"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_Permission"
+    __table_args__ = {"schema": "gold"}
 
     PermissionId: Mapped[int] = mapped_column("Permission_Id", BigInteger, primary_key=True)
-    RoleId: Mapped[int | None] = mapped_column("Role_Id", BigInteger)
-    PageId: Mapped[int | None] = mapped_column("Page_Id", BigInteger)
-    HRIDempMstrtable: Mapped[str | None] = mapped_column(String(255))
-    AccessId: Mapped[int | None] = mapped_column("Access_Id", BigInteger)
-    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime)
+    RoleId: Mapped[int] = mapped_column("Role_Id", Integer, ForeignKey("gold.ClearOps_Role.Role_Id"))
+    PageId: Mapped[int] = mapped_column("Page_Id", Integer, ForeignKey("gold.ClearOps_Page.Row_Id"))
+    HRID: Mapped[str | None] = mapped_column(String(100), ForeignKey("gold.Employee_Master.HRID"))
+    AccessId: Mapped[int] = mapped_column("Access_Id", Integer, ForeignKey("gold.ClearOps_Access_table.Access_ID"))
+    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime, server_default=func.sysutcdatetime())

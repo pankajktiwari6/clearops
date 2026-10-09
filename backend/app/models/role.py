@@ -1,18 +1,17 @@
-from sqlalchemy import BigInteger, String
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class Role(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_Role'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class Role(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_Role in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "Role"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_Role"
+    __table_args__ = {"schema": "gold"}
 
-    RoleName: Mapped[str | None] = mapped_column("Role_Name", String(150))
+    RoleId: Mapped[int] = mapped_column("Role_Id", Integer, primary_key=True)
+    RoleName: Mapped[str] = mapped_column("Role_Name", String(200))
     RoleType: Mapped[str | None] = mapped_column("Role_Type", String(50))
-    RoleId: Mapped[int] = mapped_column("Role_Id", BigInteger, primary_key=True)

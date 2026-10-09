@@ -7,16 +7,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoginCreate(BaseModel):
-    """Payload for creating a clearops.Login row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_login row (identity key and audit columns are generated)."""
 
+    hrid: str
     sso: str | None = None
     email: str | None = None
-    hrid: str | None = None
     date_time: datetime | None = None
 
 
 class LoginUpdate(BaseModel):
-    """Partial update of a clearops.Login row -- every field optional."""
+    """Partial update of a gold.ClearOps_login row -- every field optional."""
 
     sso: str | None = None
     email: str | None = None
@@ -30,7 +30,7 @@ class LoginResponse(BaseModel):
     user_login_id: int = Field(validation_alias="UserLoginId")
     sso: str | None = Field(default=None, validation_alias="SSO")
     email: str | None = Field(default=None, validation_alias="Email")
-    hrid: str | None = Field(default=None, validation_alias="HRID")
+    hrid: str = Field(validation_alias="HRID")
     date_time: datetime | None = Field(default=None, validation_alias="DateTime")
 
 

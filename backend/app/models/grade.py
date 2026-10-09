@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, String
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -6,15 +6,14 @@ from app.models.mixins import GoldControlColumnsMixin
 
 
 class Grade(GoldControlColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'Grades'). Types are inferred from column names -- confirm against a
-    real export. Source-data table (gold schema); control columns come from GoldControlColumnsMixin."""
+    """Mirrors gold.Grades in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    Source-data table, loaded by the pipeline. Audit/control columns come from GoldControlColumnsMixin."""
 
-    __tablename__ = "Grade"
+    __tablename__ = "Grades"
     __table_args__ = {"schema": "gold"}
 
-    JobCode: Mapped[str | None] = mapped_column("Job_Code", String(255))
-    JobTitle: Mapped[str | None] = mapped_column("Job_title", String(150))
-    BusinessTitle: Mapped[str | None] = mapped_column("Business_Title", String(150))
-    GradeId: Mapped[int] = mapped_column("Grade_Id", BigInteger, primary_key=True)
-    Grade: Mapped[str | None] = mapped_column(String(255))
+    GradeId: Mapped[int] = mapped_column("Grade_Id", Integer, primary_key=True)
+    JobCodeasgradeCode: Mapped[str] = mapped_column("Job_Codeasgrade_code", String(100))
+    JobTitle: Mapped[str | None] = mapped_column("Job_title", String(200))
+    BusinessTitle: Mapped[str | None] = mapped_column("Business_Title", String(200))
+    Grade: Mapped[str | None] = mapped_column(String(100))

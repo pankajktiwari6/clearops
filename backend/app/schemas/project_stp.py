@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectSTPCreate(BaseModel):
-    """Payload for creating a clearops.ProjectSTP row (primary key is generated)."""
+    """Payload for creating a gold.ClearOps_ProjectSTP row (identity key and audit columns are generated)."""
 
     resorce_id: int | None = None
     rate_card_id: int | None = None
@@ -20,7 +20,7 @@ class ProjectSTPCreate(BaseModel):
 
 
 class ProjectSTPUpdate(BaseModel):
-    """Partial update of a clearops.ProjectSTP row -- every field optional."""
+    """Partial update of a gold.ClearOps_ProjectSTP row -- every field optional."""
 
     resorce_id: int | None = None
     rate_card_id: int | None = None
@@ -35,6 +35,7 @@ class ProjectSTPUpdate(BaseModel):
 class ProjectSTPResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True, validate_by_alias=True)
 
+    project_stp_id: int = Field(validation_alias="ProjectSTPId")
     resorce_id: int | None = Field(default=None, validation_alias="ResorceId")
     rate_card_id: int | None = Field(default=None, validation_alias="RateCardId")
     task_start_date: date | None = Field(default=None, validation_alias="TaskStartDate")
@@ -42,12 +43,12 @@ class ProjectSTPResponse(BaseModel):
     monthly_hours: float | None = Field(default=None, validation_alias="MonthlyHours")
     task_id: int | None = Field(default=None, validation_alias="TaskId")
     year_months: str | None = Field(default=None, validation_alias="YearMonths")
-    project_stp_id: int = Field(validation_alias="ProjectSTPId")
     date_time: datetime | None = Field(default=None, validation_alias="DateTime")
 
 
 # Fields the ProjectSTP grid may sort by (server-side).
 ProjectSTPSortField = Literal[
+    "project_stp_id",
     "resorce_id",
     "rate_card_id",
     "task_start_date",
@@ -55,6 +56,5 @@ ProjectSTPSortField = Literal[
     "monthly_hours",
     "task_id",
     "year_months",
-    "project_stp_id",
     "date_time",
 ]

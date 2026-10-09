@@ -1,22 +1,21 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, String
+from sqlalchemy import BigInteger, DateTime, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import ClearOpsAuditColumnsMixin
+from app.models.mixins import GoldAuditColumnsMixin
 
 
-class UserLogin(ClearOpsAuditColumnsMixin, Base):
-    """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
-    'ClearOps_UserLogin'). Types are inferred from column names -- confirm against a
-    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
+class UserLogin(GoldAuditColumnsMixin, Base):
+    """Mirrors gold.ClearOps_UserLogin in ClearOps_Stage_Bronze_Silver_Gold_Database_Design (v2.8).
+    ClearOps application-owned table. Audit/control columns come from GoldAuditColumnsMixin."""
 
-    __tablename__ = "UserLogin"
-    __table_args__ = {"schema": "clearops"}
+    __tablename__ = "ClearOps_UserLogin"
+    __table_args__ = {"schema": "gold"}
 
     Userid: Mapped[int] = mapped_column("userid", BigInteger, primary_key=True)
-    Email: Mapped[str | None] = mapped_column("email", String(255))
+    Email: Mapped[str | None] = mapped_column("email", String(320))
     Logindatetimestampe: Mapped[datetime | None] = mapped_column("logindatetimestampe", DateTime)
-    Status: Mapped[str | None] = mapped_column("status", String(50))
-    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime)
+    Status: Mapped[str | None] = mapped_column("status", String(30))
+    DateTime: Mapped[datetime | None] = mapped_column("Date_Time", DateTime, server_default=func.sysutcdatetime())
