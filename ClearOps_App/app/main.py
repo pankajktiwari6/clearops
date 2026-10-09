@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.crud import MAPPING, build_routers
 from app.core.config import settings
 
-app = FastAPI(title="ClearOps_App", version="0.1.0")
+app = FastAPI(title=settings.APP_NAME, version="0.1.0")
 app.add_middleware(
     CORSMiddleware, allow_origins=settings.CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"]
 )
