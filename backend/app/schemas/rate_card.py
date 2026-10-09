@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RateCardCreate(BaseModel):
-    """Payload for creating a gold.RateCard row (primary key is generated)."""
+    """Payload for creating a clearops.RateCard row (primary key is generated)."""
 
     client_code: str | None = None
     grade_id: int | None = None
@@ -21,7 +21,7 @@ class RateCardCreate(BaseModel):
 
 
 class RateCardUpdate(BaseModel):
-    """Partial update of a gold.RateCard row -- every field optional."""
+    """Partial update of a clearops.RateCard row -- every field optional."""
 
     client_code: str | None = None
     grade_id: int | None = None

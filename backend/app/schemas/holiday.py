@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class HolidayCreate(BaseModel):
-    """Payload for creating a gold.Holiday row (primary key is generated)."""
+    """Payload for creating a clearops.Holiday row (primary key is generated)."""
 
     country: str | None = None
     holiday_date: date | None = None
@@ -16,7 +16,7 @@ class HolidayCreate(BaseModel):
 
 
 class HolidayUpdate(BaseModel):
-    """Partial update of a gold.Holiday row -- every field optional."""
+    """Partial update of a clearops.Holiday row -- every field optional."""
 
     country: str | None = None
     holiday_date: date | None = None

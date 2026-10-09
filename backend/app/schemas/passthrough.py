@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PassthroughCreate(BaseModel):
-    """Payload for creating a gold.Passthrough row (primary key is generated)."""
+    """Payload for creating a clearops.Passthrough row (primary key is generated)."""
 
     contract_number: str | None = None
     project_id: int | None = None
@@ -20,7 +20,7 @@ class PassthroughCreate(BaseModel):
 
 
 class PassthroughUpdate(BaseModel):
-    """Partial update of a gold.Passthrough row -- every field optional."""
+    """Partial update of a clearops.Passthrough row -- every field optional."""
 
     contract_number: str | None = None
     project_id: int | None = None

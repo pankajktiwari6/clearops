@@ -8,7 +8,7 @@ from app.models.mixins import GoldControlColumnsMixin
 class Grade(GoldControlColumnsMixin, Base):
     """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
     'Grades'). Types are inferred from column names -- confirm against a
-    real export. Gold control columns come from GoldControlColumnsMixin."""
+    real export. Source-data table (gold schema); control columns come from GoldControlColumnsMixin."""
 
     __tablename__ = "Grade"
     __table_args__ = {"schema": "gold"}

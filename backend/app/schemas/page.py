@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PageCreate(BaseModel):
-    """Payload for creating a gold.Page row (primary key is generated)."""
+    """Payload for creating a clearops.Page row (primary key is generated)."""
 
     page_number: str | None = None
     page_name: str | None = None
@@ -15,7 +15,7 @@ class PageCreate(BaseModel):
 
 
 class PageUpdate(BaseModel):
-    """Partial update of a gold.Page row -- every field optional."""
+    """Partial update of a clearops.Page row -- every field optional."""
 
     page_number: str | None = None
     page_name: str | None = None

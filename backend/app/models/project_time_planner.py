@@ -4,16 +4,16 @@ from sqlalchemy import BigInteger, Boolean, Date, Numeric, String, Time
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
-from app.models.mixins import GoldControlColumnsMixin
+from app.models.mixins import ClearOpsAuditColumnsMixin
 
 
-class ProjectTimePlanner(GoldControlColumnsMixin, Base):
+class ProjectTimePlanner(ClearOpsAuditColumnsMixin, Base):
     """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
     'ClearOps_ProjectTimePlanner'). Types are inferred from column names -- confirm against a
-    real export. Gold control columns come from GoldControlColumnsMixin."""
+    real export. ClearOps-owned table (clearops schema); audit columns come from ClearOpsAuditColumnsMixin."""
 
     __tablename__ = "ProjectTimePlanner"
-    __table_args__ = {"schema": "gold"}
+    __table_args__ = {"schema": "clearops"}
 
     ProjectTimePannerId: Mapped[int] = mapped_column("Project_Time_Panner_id", BigInteger, primary_key=True)
     TaskID: Mapped[int | None] = mapped_column("Task_ID", BigInteger)

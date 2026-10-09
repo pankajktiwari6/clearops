@@ -10,7 +10,7 @@ from app.models.mixins import GoldControlColumnsMixin
 class ProjectWBS(GoldControlColumnsMixin, Base):
     """Columns taken from ClearOps_Database_Final_DB_Tables.xlsx (sheet
     'ProjectWBS'). Types are inferred from column names -- confirm against a
-    real export. Gold control columns come from GoldControlColumnsMixin."""
+    real export. Source-data table (gold schema); control columns come from GoldControlColumnsMixin."""
 
     __tablename__ = "ProjectWBS"
     __table_args__ = {"schema": "gold"}

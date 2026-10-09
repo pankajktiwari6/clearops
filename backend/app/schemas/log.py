@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class LogCreate(BaseModel):
-    """Payload for creating a gold.Log row (primary key is generated)."""
+    """Payload for creating a clearops.Log row (primary key is generated)."""
 
     sys_integration_id: int | None = None
     cornjobrun_id: int | None = None
@@ -15,7 +15,7 @@ class LogCreate(BaseModel):
 
 
 class LogUpdate(BaseModel):
-    """Partial update of a gold.Log row -- every field optional."""
+    """Partial update of a clearops.Log row -- every field optional."""
 
     sys_integration_id: int | None = None
     cornjobrun_id: int | None = None

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoginCreate(BaseModel):
-    """Payload for creating a gold.Login row (primary key is generated)."""
+    """Payload for creating a clearops.Login row (primary key is generated)."""
 
     sso: str | None = None
     email: str | None = None
@@ -16,7 +16,7 @@ class LoginCreate(BaseModel):
 
 
 class LoginUpdate(BaseModel):
-    """Partial update of a gold.Login row -- every field optional."""
+    """Partial update of a clearops.Login row -- every field optional."""
 
     sso: str | None = None
     email: str | None = None

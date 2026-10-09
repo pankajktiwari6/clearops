@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class FXRateCreate(BaseModel):
-    """Payload for creating a gold.FXRate row (primary key is generated)."""
+    """Payload for creating a clearops.FXRate row (primary key is generated)."""
 
     source_funding_currency: str | None = None
     target_currency: str | None = None
@@ -15,7 +15,7 @@ class FXRateCreate(BaseModel):
 
 
 class FXRateUpdate(BaseModel):
-    """Partial update of a gold.FXRate row -- every field optional."""
+    """Partial update of a clearops.FXRate row -- every field optional."""
 
     source_funding_currency: str | None = None
     target_currency: str | None = None

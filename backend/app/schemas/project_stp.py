@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectSTPCreate(BaseModel):
-    """Payload for creating a gold.ProjectSTP row (primary key is generated)."""
+    """Payload for creating a clearops.ProjectSTP row (primary key is generated)."""
 
     resorce_id: int | None = None
     rate_card_id: int | None = None
@@ -20,7 +20,7 @@ class ProjectSTPCreate(BaseModel):
 
 
 class ProjectSTPUpdate(BaseModel):
-    """Partial update of a gold.ProjectSTP row -- every field optional."""
+    """Partial update of a clearops.ProjectSTP row -- every field optional."""
 
     resorce_id: int | None = None
     rate_card_id: int | None = None

@@ -6,14 +6,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RoleCreate(BaseModel):
-    """Payload for creating a gold.Role row (primary key is generated)."""
+    """Payload for creating a clearops.Role row (primary key is generated)."""
 
     role_name: str | None = None
     role_type: str | None = None
 
 
 class RoleUpdate(BaseModel):
-    """Partial update of a gold.Role row -- every field optional."""
+    """Partial update of a clearops.Role row -- every field optional."""
 
     role_name: str | None = None
     role_type: str | None = None

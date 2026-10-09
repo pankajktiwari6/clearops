@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PermissionCreate(BaseModel):
-    """Payload for creating a gold.Permission row (primary key is generated)."""
+    """Payload for creating a clearops.Permission row (primary key is generated)."""
 
     role_id: int | None = None
     page_id: int | None = None
@@ -17,7 +17,7 @@ class PermissionCreate(BaseModel):
 
 
 class PermissionUpdate(BaseModel):
-    """Partial update of a gold.Permission row -- every field optional."""
+    """Partial update of a clearops.Permission row -- every field optional."""
 
     role_id: int | None = None
     page_id: int | None = None

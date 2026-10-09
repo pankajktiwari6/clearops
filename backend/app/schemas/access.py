@@ -7,14 +7,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AccessCreate(BaseModel):
-    """Payload for creating a gold.Access row (primary key is generated)."""
+    """Payload for creating a clearops.Access row (primary key is generated)."""
 
     accrss_type: str | None = None
     date_time: datetime | None = None
 
 
 class AccessUpdate(BaseModel):
-    """Partial update of a gold.Access row -- every field optional."""
+    """Partial update of a clearops.Access row -- every field optional."""
 
     accrss_type: str | None = None
     date_time: datetime | None = None

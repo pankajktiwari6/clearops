@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ResourceCreate(BaseModel):
-    """Payload for creating a gold.Resource row (primary key is generated)."""
+    """Payload for creating a clearops.Resource row (primary key is generated)."""
 
     hrid: str | None = None
     name: str | None = None
@@ -22,7 +22,7 @@ class ResourceCreate(BaseModel):
 
 
 class ResourceUpdate(BaseModel):
-    """Partial update of a gold.Resource row -- every field optional."""
+    """Partial update of a clearops.Resource row -- every field optional."""
 
     hrid: str | None = None
     name: str | None = None

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
-    """Payload for creating a gold.User row (primary key is generated)."""
+    """Payload for creating a clearops.User row (primary key is generated)."""
 
     hrid: str | None = None
     role_id: int | None = None
@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """Partial update of a gold.User row -- every field optional."""
+    """Partial update of a clearops.User row -- every field optional."""
 
     hrid: str | None = None
     role_id: int | None = None

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectTimePlannerCreate(BaseModel):
-    """Payload for creating a gold.ProjectTimePlanner row (primary key is generated)."""
+    """Payload for creating a clearops.ProjectTimePlanner row (primary key is generated)."""
 
     task_id: int | None = None
     resource_id: int | None = None
@@ -22,7 +22,7 @@ class ProjectTimePlannerCreate(BaseModel):
 
 
 class ProjectTimePlannerUpdate(BaseModel):
-    """Partial update of a gold.ProjectTimePlanner row -- every field optional."""
+    """Partial update of a clearops.ProjectTimePlanner row -- every field optional."""
 
     task_id: int | None = None
     resource_id: int | None = None

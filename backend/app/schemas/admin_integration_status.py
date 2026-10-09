@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AdminIntegrationStatusCreate(BaseModel):
-    """Payload for creating a gold.AdminIntegrationStatus row (primary key is generated)."""
+    """Payload for creating a clearops.AdminIntegrationStatus row (primary key is generated)."""
 
     system: str | None = None
     last_sync: datetime | None = None
@@ -17,7 +17,7 @@ class AdminIntegrationStatusCreate(BaseModel):
 
 
 class AdminIntegrationStatusUpdate(BaseModel):
-    """Partial update of a gold.AdminIntegrationStatus row -- every field optional."""
+    """Partial update of a clearops.AdminIntegrationStatus row -- every field optional."""
 
     system: str | None = None
     last_sync: datetime | None = None
