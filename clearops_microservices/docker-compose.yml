@@ -1,17 +1,47 @@
+# Run from clearops_microservices/:  docker compose up --build
+x-db: &db
+  DATABASE_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-Clear0ps!Pass}@mssql:1433/ClearOps?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+x-domain: &domain
+  context: ..
+  dockerfile: clearops_microservices/services/Dockerfile.domain
 services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment: {ACCEPT_EULA: "Y", MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Clear0ps!Pass}"}
+    ports: ["1433:1433"]
+  redis:
+    image: redis:7-alpine
+  db-init:      # dev only: creates the ClearOps DB, gold/silver schemas and tables
+    build: {<<: *domain, args: {SERVICE: setup, PORT: "8001"}}
+    image: clearops-setup
+    environment: *db
+    command: python -m common.init_db
+    depends_on: [mssql]
+    restart: "no"
+  setup-service:
+    image: clearops-setup
+    environment: *db
+    depends_on: {db-init: {condition: service_completed_successfully}}
+  timeplanner-service:
+    build: {<<: *domain, args: {SERVICE: timeplanner, PORT: "8002"}}
+    environment: *db
+    depends_on: {db-init: {condition: service_completed_successfully}}
+  project-service:
+    build: {<<: *domain, args: {SERVICE: project, PORT: "8003"}}
+    environment: *db
+    depends_on: {db-init: {condition: service_completed_successfully}}
+  admin-service:
+    build: {<<: *domain, args: {SERVICE: admin, PORT: "8004"}}
+    environment: *db
+    depends_on: {db-init: {condition: service_completed_successfully}}
   gateway:
-    build: ./gateway
+    build: ./services/gateway
     ports: ["8000:8000"]
     environment:
-      USER_SERVICE_URL: http://user-service:8001
-      ORDER_SERVICE_URL: http://order-service:8002
-    depends_on: [user-service, order-service]
-  user-service:
-    build: ./user_service
-    expose: ["8001"]
-  order-service:
-    build: ./order_service
-    environment:
-      USER_SERVICE_URL: http://user-service:8001
-    expose: ["8002"]
-    depends_on: [user-service]
+      AUTH_ENABLED: "false"          # true + AAD_TENANT_ID / AAD_CLIENT_ID outside local dev
+      REDIS_URL: redis://redis:6379
+      SETUP_SERVICE_URL: http://setup-service:8001
+      TIMEPLANNER_SERVICE_URL: http://timeplanner-service:8002
+      PROJECT_SERVICE_URL: http://project-service:8003
+      ADMIN_SERVICE_URL: http://admin-service:8004
+    depends_on: [redis, setup-service, timeplanner-service, project-service, admin-service]

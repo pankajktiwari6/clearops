@@ -14,6 +14,7 @@ class HolidayCreate(BaseModel):
     holiday_date: date
     comment: str | None = None
     holiday_name: str | None = None
+    holiday_month: str | None = None
     source_row_hash: bytes | None = None
     pipeline_run_id: UUID | None = None
 
@@ -25,6 +26,7 @@ class HolidayUpdate(BaseModel):
     holiday_date: date | None = None
     comment: str | None = None
     holiday_name: str | None = None
+    holiday_month: str | None = None
     source_row_hash: bytes | None = None
     pipeline_run_id: UUID | None = None
 
@@ -37,6 +39,7 @@ class HolidayResponse(BaseModel):
     holiday_date: date = Field(validation_alias="HolidayDate")
     comment: str | None = Field(default=None, validation_alias="Comment")
     holiday_name: str | None = Field(default=None, validation_alias="HolidayName")
+    holiday_month: str | None = Field(default=None, validation_alias="HolidayMonth")
     source_row_hash: bytes | None = Field(default=None, validation_alias="SourceRowHash")
     pipeline_run_id: UUID | None = Field(default=None, validation_alias="PipelineRunId")
 
@@ -48,6 +51,7 @@ HolidaySortField = Literal[
     "holiday_date",
     "comment",
     "holiday_name",
+    "holiday_month",
     "source_row_hash",
     "pipeline_run_id",
 ]

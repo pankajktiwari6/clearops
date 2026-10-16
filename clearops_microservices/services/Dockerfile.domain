@@ -1,0 +1,19 @@
+# Build from the repo root:  docker build -f clearops_microservices/services/Dockerfile.domain --build-arg SERVICE=setup --build-arg PORT=8001 .
+FROM python:3.12-slim
+ARG SERVICE
+ARG PORT
+ENV PORT=${PORT} PYTHONPATH=/srv
+WORKDIR /srv
+RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg unixodbc-dev \
+ && curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg \
+ && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql.list \
+ && apt-get update && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
+ && rm -rf /var/lib/apt/lists/*
+COPY ClearOps_App/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt azure-monitor-opentelemetry
+COPY ClearOps_App/app ./app
+COPY clearops_microservices/services/common ./common
+COPY clearops_microservices/services/${SERVICE}/service.py ./service.py
+RUN useradd -r app && chown -R app /srv
+USER app
+CMD uvicorn service:app --host 0.0.0.0 --port ${PORT}
