@@ -106,5 +106,11 @@ def _build(name: str, spec: dict) -> APIRouter:
     return router
 
 
-def build_routers() -> list[APIRouter]:
-    return [_build(name, spec) for name, spec in MAPPING.items()]
+def build_routers(only: set[str] | None = None) -> list[APIRouter]:
+    """Routers for every mapped table, or just the named ones (a microservice's domain).
+
+    All ORM modules are imported either way so cross-table foreign keys resolve.
+    """
+    for spec in MAPPING.values():
+        importlib.import_module(spec["orm_module"])
+    return [_build(name, spec) for name, spec in MAPPING.items() if only is None or name in only]

@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: gateway}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gateway}}
+  template:
+    metadata: {labels: {app: gateway}}
+    spec:
+      containers:
+      - name: gateway
+        image: ${ACR}/clearops-gateway:${TAG}
+        ports: [{containerPort: 8000}]
+        env:
+        - {name: SETUP_SERVICE_URL, value: "http://setup-service"}
+        - {name: TIMEPLANNER_SERVICE_URL, value: "http://timeplanner-service"}
+        - {name: PROJECT_SERVICE_URL, value: "http://project-service"}
+        - {name: ADMIN_SERVICE_URL, value: "http://admin-service"}
+        - {name: AUTH_ENABLED, value: "true"}
+        - name: REDIS_URL
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: redis-url}}
+        - name: AAD_TENANT_ID
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: aad-tenant-id}}
+        - name: AAD_CLIENT_ID
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: aad-client-id}}
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: appinsights-connection-string}}
+        readinessProbe: {httpGet: {path: /health, port: 8000}}
+        livenessProbe: {httpGet: {path: /health, port: 8000}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: gateway}
+spec:
+  selector: {app: gateway}
+  ports: [{port: 80, targetPort: 8000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: setup-service}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: setup-service}}
+  template:
+    metadata: {labels: {app: setup-service}}
+    spec:
+      containers:
+      - name: setup-service
+        image: ${ACR}/clearops-setup:${TAG}
+        ports: [{containerPort: 8001}]
+        env:
+        - name: DATABASE_URL
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: database-url}}
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: appinsights-connection-string}}
+        readinessProbe: {httpGet: {path: /health, port: 8001}}
+        livenessProbe: {httpGet: {path: /health, port: 8001}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: setup-service}
+spec:
+  selector: {app: setup-service}
+  ports: [{port: 80, targetPort: 8001}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: timeplanner-service}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: timeplanner-service}}
+  template:
+    metadata: {labels: {app: timeplanner-service}}
+    spec:
+      containers:
+      - name: timeplanner-service
+        image: ${ACR}/clearops-timeplanner:${TAG}
+        ports: [{containerPort: 8002}]
+        env:
+        - name: DATABASE_URL
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: database-url}}
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: appinsights-connection-string}}
+        readinessProbe: {httpGet: {path: /health, port: 8002}}
+        livenessProbe: {httpGet: {path: /health, port: 8002}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: timeplanner-service}
+spec:
+  selector: {app: timeplanner-service}
+  ports: [{port: 80, targetPort: 8002}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: project-service}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: project-service}}
+  template:
+    metadata: {labels: {app: project-service}}
+    spec:
+      containers:
+      - name: project-service
+        image: ${ACR}/clearops-project:${TAG}
+        ports: [{containerPort: 8003}]
+        env:
+        - name: DATABASE_URL
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: database-url}}
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: appinsights-connection-string}}
+        readinessProbe: {httpGet: {path: /health, port: 8003}}
+        livenessProbe: {httpGet: {path: /health, port: 8003}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: project-service}
+spec:
+  selector: {app: project-service}
+  ports: [{port: 80, targetPort: 8003}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: admin-service}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: admin-service}}
+  template:
+    metadata: {labels: {app: admin-service}}
+    spec:
+      containers:
+      - name: admin-service
+        image: ${ACR}/clearops-admin:${TAG}
+        ports: [{containerPort: 8004}]
+        env:
+        - name: DATABASE_URL
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: database-url}}
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom: {secretKeyRef: {name: clearops-secrets, key: appinsights-connection-string}}
+        readinessProbe: {httpGet: {path: /health, port: 8004}}
+        livenessProbe: {httpGet: {path: /health, port: 8004}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: admin-service}
+spec:
+  selector: {app: admin-service}
+  ports: [{port: 80, targetPort: 8004}]

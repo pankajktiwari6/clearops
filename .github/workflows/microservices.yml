@@ -1,0 +1,58 @@
+name: Microservices CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths: ["clearops_microservices/**", "ClearOps_App/**"]
+  pull_request:
+    paths: ["clearops_microservices/**", "ClearOps_App/**"]
+
+permissions:
+  contents: read
+  id-token: write   # Azure OIDC login
+
+env:
+  ACR: ${{ vars.ACR_LOGIN_SERVER }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: clearops_microservices}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r services/gateway/requirements.txt -r ../ClearOps_App/requirements.txt pytest
+      - run: pytest
+        env: {DATABASE_URL: "sqlite://"}
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: clearops_microservices}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - run: az acr login --name "${ACR%%.*}"
+      - name: Build and push images
+        run: |
+          docker build -t "$ACR/clearops-gateway:$GITHUB_SHA" services/gateway
+          docker push "$ACR/clearops-gateway:$GITHUB_SHA"
+          for s in setup:8001 timeplanner:8002 project:8003 admin:8004; do
+            docker build -f clearops_microservices/services/Dockerfile.domain \
+              --build-arg SERVICE="${s%%:*}" --build-arg PORT="${s##*:}" \
+              -t "$ACR/clearops-${s%%:*}:$GITHUB_SHA" ..
+            docker push "$ACR/clearops-${s%%:*}:$GITHUB_SHA"
+          done
+      - uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ vars.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ vars.AKS_CLUSTER }}
+      - name: Deploy
+        run: envsubst < k8s/services.yaml | kubectl apply -f -
+        env: {TAG: "${{ github.sha }}"}

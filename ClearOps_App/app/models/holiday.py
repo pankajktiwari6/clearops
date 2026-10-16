@@ -20,5 +20,6 @@ class Holiday(GoldAuditColumnsMixin, Base):
     HolidayDate: Mapped[date] = mapped_column(Date)
     Comment: Mapped[str | None] = mapped_column(String(500))
     HolidayName: Mapped[str | None] = mapped_column("Holiday_Name", String(200))
+    HolidayMonth: Mapped[str | None] = mapped_column("Holiday_month", String(20))
     SourceRowHash: Mapped[bytes | None] = mapped_column(LargeBinary)
     PipelineRunId: Mapped[UUID | None] = mapped_column(Uuid)
