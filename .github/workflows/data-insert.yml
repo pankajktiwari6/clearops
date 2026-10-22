@@ -1,0 +1,52 @@
+name: Data Insertion
+
+# Process 2: load seed/reference data by running clearops_microservices/data_pipeline/sql/seed/*.sql in filename order.
+# Seed scripts must be idempotent (e.g. IF NOT EXISTS / MERGE). Requires the schema from the DB Creation workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, staging, prod]
+        default: dev
+  workflow_run:
+    workflows: ["DB Creation"]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths: ["clearops_microservices/data_pipeline/sql/seed/**"]
+
+jobs:
+  insert-data:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency:
+      group: db-${{ inputs.environment || 'dev' }}
+      cancel-in-progress: false
+    env:
+      SQL_SERVER: ${{ secrets.SQL_SERVER }}
+      SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+      SQL_USER: ${{ secrets.SQL_USER }}
+      SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install sqlcmd
+        run: |
+          curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
+          echo "deb [signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mssql.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+      - name: Run seed scripts
+        run: |
+          shopt -s nullglob
+          files=(clearops_microservices/data_pipeline/sql/seed/*.sql)
+          [ ${#files[@]} -gt 0 ] || { echo "No seed scripts found"; exit 0; }
+          for f in "${files[@]}"; do
+            echo "::group::$f"
+            sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -P "$SQL_PASSWORD" -C -b -i "$f"
+            echo "::endgroup::"
+          done

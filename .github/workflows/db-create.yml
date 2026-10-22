@@ -1,0 +1,49 @@
+name: DB Creation
+
+# Process 1: create the medallion schemas/tables (bronze/silver/gold) in the target MS SQL database.
+# Idempotent (IF ... IS NULL guards), safe to re-run. Triggers the data-insert workflow on success.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, staging, prod]
+        default: dev
+  push:
+    branches: [main]
+    paths: ["clearops_microservices/data_pipeline/sql/*.sql", "ClearOps_App/app/models/**"]
+
+jobs:
+  create-db:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency:
+      group: db-${{ inputs.environment || 'dev' }}
+      cancel-in-progress: false
+    env:
+      SQL_SERVER: ${{ secrets.SQL_SERVER }}
+      SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+      SQL_USER: ${{ secrets.SQL_USER }}
+      SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install sqlcmd
+        run: |
+          curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
+          echo "deb [signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mssql.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev msodbcsql18
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+      - name: Create medallion schemas and bronze tables
+        run: sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -P "$SQL_PASSWORD" -C -b -i clearops_microservices/data_pipeline/sql/medallion.sql
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Create gold/silver tables from ORM models
+        working-directory: clearops_microservices/services
+        env:
+          PYTHONPATH: ${{ github.workspace }}/ClearOps_App:${{ github.workspace }}/clearops_microservices/services
+        run: |
+          pip install -r ../../ClearOps_App/requirements.txt
+          export DATABASE_URL="mssql+pyodbc://${SQL_USER}:$(python -c 'import os,urllib.parse as u;print(u.quote_plus(os.environ["SQL_PASSWORD"]))')@${SQL_SERVER}:1433/${SQL_DATABASE}?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+          python common/init_db.py
