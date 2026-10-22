@@ -14,6 +14,10 @@ BEGIN
         Line_Count       INT            NOT NULL CONSTRAINT DF_EstVersion_LineCount DEFAULT (0),
         Estimate_Total   NUMERIC(18,2)  NULL,
         Snapshot_Json    NVARCHAR(MAX)  NOT NULL,
+        -- Only the current version is active; older versions default to 0 until a user activates them
+        Is_Active        BIT            NOT NULL CONSTRAINT DF_EstVersion_IsActive DEFAULT (0),
+        Activated_By     VARCHAR(100)   NULL,
+        Activated_Date   DATETIME2      NULL,
         -- Gold audit columns (GoldAuditColumnsMixin)
         DateOfData       DATE           NULL CONSTRAINT DF_EstVersion_DateOfData DEFAULT (CAST(SYSUTCDATETIME() AS DATE)),
         GoldCreatedBy    VARCHAR(100)   NOT NULL,
@@ -24,6 +28,29 @@ BEGIN
         CONSTRAINT UQ_ClearOps_ProjectEstimator_Version_Project_VersionNo UNIQUE (Project_Id, Version_No),
         CONSTRAINT CK_EstVersion_Snapshot_IsJson CHECK (ISJSON(Snapshot_Json) = 1)
     );
+END
+GO
+
+-- Upgrade path for an existing table created before Is_Active was added
+IF COL_LENGTH(N'gold.ClearOps_ProjectEstimator_Version', N'Is_Active') IS NULL
+BEGIN
+    ALTER TABLE gold.ClearOps_ProjectEstimator_Version ADD
+        Is_Active      BIT NOT NULL CONSTRAINT DF_EstVersion_IsActive DEFAULT (0),
+        Activated_By   VARCHAR(100) NULL,
+        Activated_Date DATETIME2 NULL;
+END
+GO
+
+-- Existing rows: the latest version of each project becomes the active one
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_EstVersion_OneActivePerProject'
+               AND object_id = OBJECT_ID(N'gold.ClearOps_ProjectEstimator_Version'))
+BEGIN
+    EXEC (N'UPDATE v SET Is_Active = 1
+            FROM gold.ClearOps_ProjectEstimator_Version v
+            WHERE Version_No = (SELECT MAX(Version_No) FROM gold.ClearOps_ProjectEstimator_Version WHERE Project_Id = v.Project_Id)');
+    -- At most one active version per project
+    EXEC (N'CREATE UNIQUE INDEX UX_EstVersion_OneActivePerProject
+            ON gold.ClearOps_ProjectEstimator_Version (Project_Id) WHERE Is_Active = 1');
 END
 GO
 
