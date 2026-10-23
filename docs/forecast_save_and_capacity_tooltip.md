@@ -12,28 +12,46 @@
 - Nothing in the backend currently does bulk save or cross-project capacity aggregation.
 
 ## Proposed changes
+**Principle: the backend owns every calculation.** The UI sends raw edits and renders whatever the API returns. It never sums, multiplies or derives capacity itself.
+
 ### Backend
-1. **Bulk save endpoint** (timeplanner service), e.g. `PUT /projecttimeplanner/bulk`:
-   - Body: list of `{resource_id, task_id, month/start_date/end_date, plan_hours}`.
-   - Upsert per (`Resource_Id`, `Task_ID`, period) in **one transaction** (all or nothing); stamp audit columns from `x-user`.
-   - Return the saved rows plus recomputed capacity per affected resource.
-2. **Capacity endpoint**, e.g. `GET /capacity?resource_ids=..&from=..&to=..`:
-   - Per resource and month: `capacity = WeeklyHours x working days/5` (minus holidays/time off if applicable).
-   - `this_project` = sum of `PlanHours` for the current project's tasks.
-   - `other_projects` = sum of `PlanHours` for the same resource on **all other** projects (active rows only).
-   - `remaining = capacity - this_project - other_projects`; percent = remaining / capacity.
-   - Single grouped SQL query (join `ProjectTimePlanner` to `ProjectWBS` for project); no per-cell calls.
+1. **Bulk save endpoint** (timeplanner service), e.g. `PUT /forecast/bulk`:
+   - Body: list of `{resource_id, task_id, period (month), plan_hours}` plus `project_id`. Only raw inputs, no totals.
+   - Validate (hours >= 0, resource is allocated to the project, period valid), then upsert per (`Resource_Id`, `Task_ID`, period) in **one transaction** (all or nothing). Stamp audit columns from `x-user`.
+   - After commit, recompute and return the full forecast view for the affected project and resources (see response below), so one round trip refreshes the screen.
+2. **Forecast read endpoint**, e.g. `GET /forecast?project_id=..`: returns the same shape as the save response, used for initial load and refresh.
+3. **Calculations done server-side (single grouped SQL query, no per-cell calls):**
+   - Per resource-month: `cost = hours x rate`.
+   - Per task/row and per column: hour and revenue totals; grand totals for the "Total Staffed Hours" and "Raw/List Revenue" cards.
+   - Capacity per resource-month: `WeeklyHours x working days / 5`, minus holidays and time off if in scope.
+   - `this_project` = sum of `PlanHours` for the open project's tasks.
+   - `other_projects` = sum of `PlanHours` for the same resource on **all other** active projects (join `ProjectTimePlanner` to `ProjectWBS` for the project).
+   - `remaining = capacity - this_project - other_projects`; `remaining_pct = remaining / capacity`; and a status (e.g. available / near / over capacity) that drives the green dot.
+4. **Response shape (example):**
+   ```json
+   {
+     "rows": [{"resource_id": 1, "months": [{"period": "2026-10", "hours": 120, "cost": 12000.0,
+        "capacity": {"remaining": 53.33, "remaining_pct": 30.8, "this_project": 120,
+                     "other_projects": 0, "status": "available"}}],
+        "total_hours": 361, "total_cost": 36100.0}],
+     "column_totals": [{"period": "2026-10", "hours": 120, "cost": 12000.0}],
+     "summary": {"total_staffed_hours": 797, "raw_list_revenue": 104260.0}
+   }
+   ```
+5. Also expose `GET /capacity?resource_ids=..&from=..&to=..` for other screens that need the same numbers, reusing the same service function so results never diverge.
+6. Add unit tests for the capacity and totals calculations (multi-project resource, zero capacity, over-allocation, rounding) and an integration test for bulk save then read-back.
 
 ### Frontend (separate repo)
-1. Track dirty cells by (resource, month); enable **Save All Forecasts** / **Clear All** only when dirty.
-2. On Save, send one bulk request with all dirty cells; on success clear dirty state and refetch/invalidate grid rows, row/column totals, revenue cards and the capacity query. On failure, keep edits and show an error.
-3. Tooltip reads from the capacity endpoint (keyed by resource + month) instead of local values, so it reflects other projects. Refetch after save.
-4. Optionally recompute the tooltip optimistically while typing: `remaining = capacity - other_projects - edited_this_project`.
+1. Track dirty cells by (resource, period); enable **Save All Forecasts** / **Clear All** only when dirty.
+2. On Save, send one bulk request with raw edits only; on success replace grid state with the response (values, totals, cards, tooltip data). On failure keep edits and show an error.
+3. Tooltip renders `capacity` from the API response as-is. No local arithmetic.
+4. Optional: while typing, either show no live tooltip change until save, or call a lightweight backend "preview" endpoint (debounced) so the number still comes from the server.
 
 ## Acceptance criteria
 - Editing 120 -> 130 for a resource and saving persists `PlanHours` in the DB; a page reload shows 130.
 - Editing several resources/months and saving updates all of them atomically.
 - Totals, revenue and other views using the same data show the new values after save.
+- All totals, revenue and capacity values in the UI come from the API response; the UI does no calculation.
 - Tooltip "Other projects" equals the resource's hours on all other active projects; "Remaining" = capacity - this project - other projects.
 - Failed save leaves the DB unchanged and keeps edits in the UI.
 
