@@ -32,7 +32,7 @@ Example: P1 ends Jun 2027, P2 ends Aug 2028, P3 ends Dec 2027.
    - **Nothing selected.** With no saved query and no project selected, the grid shows an empty state ("Select a project to view STP details") and no STP data. Data is only ever shown for the selected projects.
    - **Saved query.** Choosing one from Saved Queries fills the Projects dropdown with that query's projects and narrows the grid to them.
    - **Editing after applying a query.** If the user then changes the Projects selection by hand, the Saved Queries dropdown resets to its placeholder (the selection is now a manual one). The user can save it under a new name.
-   - **Clearing.** Clearing the Projects selection returns to the all-projects view; Saved Queries resets to its placeholder.
+   - **Clearing.** Clearing the Projects selection returns to the empty state; Saved Queries resets to its placeholder.
    - The month range runs from the current month to the max end date across the selected projects, and each project is editable only through its own end date (same rules as above).
    - Save Query stays disabled until at least one project is selected.
    - If the user's saved queries fail to load, the Projects dropdown still works for manual selection.
