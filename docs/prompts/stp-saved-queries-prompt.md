@@ -34,7 +34,6 @@ Example: P1 ends Jun 2027, P2 ends Aug 2028, P3 ends Dec 2027.
    - **Editing after applying a query.** If the user then changes the Projects selection by hand, the Saved Queries dropdown resets to its placeholder (the selection is now a manual one). The user can save it under a new name.
    - **Clearing.** Clearing the Projects selection returns to the all-projects view; Saved Queries resets to its placeholder.
    - The month range runs from the current month to the max end date across the selected projects, and each project is editable only through its own end date (same rules as above).
-   - There is no stored "All projects" row. The unfiltered view is a UI state, not a saved query.
    - Save Query stays disabled until at least one project is selected.
    - If the user's saved queries fail to load, the Projects dropdown still works for manual selection.
 7. Persist in an STP settings table: user id (from login), filter name, and a JSON list of selected project ids from the project table. After login, the STP dropdown loads that user's saved queries.
