@@ -29,14 +29,14 @@ Example: P1 ends Jun 2027, P2 ends Aug 2028, P3 ends Dec 2027.
 6. **Toolbar and default view.** The STP toolbar, left to right, is: a **Projects** multi-select dropdown, a **Save Query** button, and a **Saved Queries** dropdown (placeholder text "Saved Queries" means no query is applied).
    - **Manual selection.** When no saved query is selected, the user can pick any projects from the Projects dropdown. The dropdown always lists every project the user can see.
    - **Viewing STP data.** As soon as the user selects one or more projects in the Projects dropdown, the grid shows the STP details (rows, months, rate card and monthly forecast values) for exactly those projects, and Save Query becomes enabled. This works the same whether or not a saved query is applied.
-   - **No filter.** With no saved query and no manual selection, the grid shows **all** projects the user can see.
+   - **Nothing selected.** With no saved query and no project selected, the grid shows an empty state ("Select a project to view STP details") and no STP data. Data is only ever shown for the selected projects.
    - **Saved query.** Choosing one from Saved Queries fills the Projects dropdown with that query's projects and narrows the grid to them.
    - **Editing after applying a query.** If the user then changes the Projects selection by hand, the Saved Queries dropdown resets to its placeholder (the selection is now a manual one). The user can save it under a new name.
    - **Clearing.** Clearing the Projects selection returns to the all-projects view; Saved Queries resets to its placeholder.
-   - With no filter, the visible set is all projects, so the month range runs from the current month to the max end date across all shown projects, and each project is editable only through its own end date (same rules as above).
+   - The month range runs from the current month to the max end date across the selected projects, and each project is editable only through its own end date (same rules as above).
    - There is no stored "All projects" row. The unfiltered view is a UI state, not a saved query.
-   - Save Query stays disabled until the user has explicitly selected at least one project. Showing all projects by default does not count as a selection.
-   - If the user's saved queries fail to load, the page still shows all projects.
+   - Save Query stays disabled until at least one project is selected.
+   - If the user's saved queries fail to load, the Projects dropdown still works for manual selection.
 7. Persist in an STP settings table: user id (from login), filter name, and a JSON list of selected project ids from the project table. After login, the STP dropdown loads that user's saved queries.
 
 ## Step 0: Verify before writing code (report briefly, then proceed)
@@ -106,7 +106,7 @@ Create `ClearOps_App/app/services/stp_dates.py` (or the closest existing home fo
 
 Rules:
 - Month granularity: compare `(year, month)`, never days. Inclusive end.
-- Empty selection: the caller passes all visible projects when no filter is active (see "Toolbar and default view"), so `visible_months` is never called with an implicit empty "no filter" case. For a truly empty project list, return the current month only or an empty list (pick one and document it).
+- Empty selection: return an empty list (the UI shows the empty state; never fall back to all projects). Document this in the docstring.
 - An `end_date` before the current month gives just the current month, read-only.
 - Null `end_date` means open-ended: editable through the displayed range, and it does not shorten the max.
 - Inject `today`. Never call `date.today()` inside the logic.
@@ -119,10 +119,10 @@ Tests with `today = 2026-10-23`, P1 end = 2027-06-30, P2 = 2028-08-31, P3 = 2027
 
 The STP UI is not in this repo. Document precisely enough to implement without questions:
 - Toolbar order: Projects multi-select, Save Query button, Saved Queries dropdown. Save Query is disabled until at least one project is selected in the Projects dropdown (either manually or from a saved query).
-- Projects dropdown: always lists all projects the user can see. It is selectable whenever no saved query is applied, and also after one is applied (a manual change resets the Saved Queries dropdown to its placeholder).
+- Projects dropdown: always lists all projects the user can see (the list, not the grid data). It is selectable whenever no saved query is applied, and also after one is applied (a manual change resets the Saved Queries dropdown to its placeholder).
 - Modal: one input labelled "Enter Query Name", plus Save and Cancel. Save disabled for empty or whitespace-only names. A 409 shows an inline "name already exists" error. Cancel clears the input.
-- Dropdown next to the button: loads on page load, refreshes after a save. Its placeholder state means no query is applied (the grid shows all projects, or the manual Projects selection). There is no stored "All projects" entry. If the list fails to load, the page still shows all projects.
-- Month range and editable cells with no filter are computed over all shown projects, using the same rules as Part C.
+- Dropdown next to the button: loads on page load, refreshes after a save. Its placeholder state means no query is applied (the grid shows the manual Projects selection, or the empty state if none). If the list fails to load, manual selection still works.
+- Month range and editable cells are computed over the selected projects only, using the same rules as Part C.
 - Selecting a saved query replaces the current selection, resolves ids via `/{id}/projects`, shows a notice for `missing_ids`, and recomputes months and editable cells.
 - Endpoints: request and response JSON examples and error codes for all of them.
 - The T-SQL DDL from Part A.
