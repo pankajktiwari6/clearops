@@ -28,6 +28,7 @@ Example: P1 ends Jun 2027, P2 ends Aug 2028, P3 ends Dec 2027.
 5. Selecting a saved query from the dropdown re-selects the saved projects (filters the selection).
 6. **Toolbar and default view.** The STP toolbar, left to right, is: a **Projects** multi-select dropdown, a **Save Query** button, and a **Saved Queries** dropdown (placeholder text "Saved Queries" means no query is applied).
    - **Manual selection.** When no saved query is selected, the user can pick any projects from the Projects dropdown. The dropdown always lists every project the user can see.
+   - **Viewing STP data.** As soon as the user selects one or more projects in the Projects dropdown, the grid shows the STP details (rows, months, rate card and monthly forecast values) for exactly those projects, and Save Query becomes enabled. This works the same whether or not a saved query is applied.
    - **No filter.** With no saved query and no manual selection, the grid shows **all** projects the user can see.
    - **Saved query.** Choosing one from Saved Queries fills the Projects dropdown with that query's projects and narrows the grid to them.
    - **Editing after applying a query.** If the user then changes the Projects selection by hand, the Saved Queries dropdown resets to its placeholder (the selection is now a manual one). The user can save it under a new name.
