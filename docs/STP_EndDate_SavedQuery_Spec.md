@@ -13,7 +13,7 @@
 | State | Today | Target |
 |---|---|---|
 | No project selected | `Projects` multi-select; Transfer, Bulk Allocation, Export, Clear All and Save All Forecasts are disabled; KPI tiles show 0; banner says "Select one or more projects to load their forecast." | Unchanged, plus **Save Query** (disabled) and **Saved Query** dropdown next to the Projects dropdown |
-| Projects selected | Grid shows a **fixed 6 months** (Oct 2026 to Mar 2027) plus Total. Rows are nested: Project, LABOR, 01.Fee, then resources. Each resource has an editable Rate and an editable hours input per month. | Month range and editable cells are driven by project end dates (Feature A). **Save Query** is enabled. |
+| Projects selected | Grid shows a **fixed 12 months** (Oct 2026 to Sep 2027) plus Total. Rows are nested: Project, LABOR, 01.Fee, then resources. Each resource has an editable Rate and an editable hours input per month. | Month range and editable cells are driven by project end dates (Feature A). **Save Query** is enabled. |
 
 ---
 
@@ -22,7 +22,7 @@
 **Source field:** `gold.Project_Master.Project_End_Date` (API `project_end_date`).
 
 ### 2.1 Rules
-1. **Displayed months** run from the **current month** to the **latest end-date month** among the selected projects. This replaces the fixed 6-month window. Recalculate on every selection change.
+1. **Displayed months** run from the **current month** to the **latest end-date month** among the selected projects. This replaces the fixed 12-month window, so the grid can show fewer than 12 months (a project ending Jun 2027 shows 9) or more (a project ending Aug 2028 shows 23). Recalculate on every selection change.
 2. **Editable cells:** a project's **Rate** and **monthly forecast (hours)** inputs are editable only from the current month through **that project's own end-date month**, inclusive.
 3. Cells after a project's end month, but within the displayed range, are **read-only**. They get a tooltip such as "Project ended Jun 2027".
 4. Dates are compared at **year-and-month** granularity.
@@ -44,7 +44,7 @@
 - The same editable check applies to **every write path**, not only the inputs:
   - **Bulk Allocation** and **Transfer** skip or reject read-only months.
   - **Save All Forecasts** sends only cells in each project's editable range.
-- Totals, KPI tiles and Export must work for the dynamic range.
+- Totals, KPI tiles and Export must work for the dynamic range, including more than 12 months. Check that the horizontal scroll and the sticky Name, Rate and Total columns still work with many months.
 - Defense in depth (recommended): the forecast save API also rejects writes after a project's end month.
 
 ### 2.4 Tests
