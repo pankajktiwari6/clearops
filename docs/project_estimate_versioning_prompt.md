@@ -16,6 +16,14 @@ You are a senior full-stack engineer (Python 3.11, FastAPI, SQLAlchemy 2.x, SQL 
 - `clearops_microservices/services/project/service.py` and `common/domain.py` (the project service owns `ProjectEstimator`; new endpoints go here)
 - Locate the frontend Project Estimate page. **If it is not in this repo, say so** and deliver backend + API contract + a precise frontend spec. Do not invent a UI framework.
 
+### 0.1b Gap analysis first (mandatory, before any change)
+Analyze what already exists for each requirement below and mark it **Present / Partial / Missing** with file and line evidence:
+role dropdown, Qty/Hrs/Rate integer inputs and validation, draft-only editing, Save Estimate endpoint, main-table upsert, version tables and models, version history modal, version detail pane, restore, current-version filtering on read, auth, tests.
+- **Present and correct:** leave unchanged.
+- **Partial or buggy:** fix in place; do not duplicate or rewrite working code.
+- **Missing:** implement it per §2–§6.
+Output the gap table first, then change only what the table marks Partial or Missing. Anything you change must be traceable to a row in that table.
+
 ### 0.2 Facts about the current code
 - Existing main table: `gold.ProjectEstimator` (PK `Project_Estimater_Id`; columns `Task_ID, Job_title, Task_Name, QTY, HRS, Rate, Total, SubTotal, Task_Number, Project_Id, Parent_Task_ID, Delivery_Type, Resource_Id`).
 - It uses `GoldControlColumnsMixin` (requires `SourceRowHash`, `PipelineRunId` – pipeline-fed). User-saved rows have no pipeline run: **make these columns nullable or populate them with a documented sentinel; do not break the pipeline loader.**
