@@ -92,8 +92,11 @@ def client(monkeypatch):
                              SourceRowHash=b"x", PipelineRunId=__import__("uuid").uuid4()))
         s.add(Resource(ResourceID=5, HRID="h", WeeklyHours=40, GoldCreatedBy="t", SourceRowHash=b"x",
                        PipelineRunId=__import__("uuid").uuid4()))
+        from app.models.user import User
+        for uid, email in ((7, "Me@Corp.com"), (8, "other@corp.com")):
+            s.add(User(UserID=uid, HRID="h", Email=email, GoldCreatedBy="t"))
         s.commit()
-    return TestClient(app)
+    return TestClient(app, headers={"x-user-email": "me@corp.com"})
 
 
 def test_timeline_endpoint(client):
@@ -103,13 +106,19 @@ def test_timeline_endpoint(client):
 
 
 def test_saved_query_lifecycle(client):
-    body = {"user_id": 7, "filter_name": "My Q", "project_ids": [1, 2]}
+    body = {"filter_name": "My Q", "project_ids": [1, 2]}
     first = client.post("/api/stp/settings", json=body).json()
     assert first["project_ids"] == [1, 2] and first["selected_projects"]["1"]["project_number"] == "P1"
     again = client.post("/api/stp/settings", json={**body, "project_ids": [2]}).json()
     assert again["stp_setting_id"] == first["stp_setting_id"] and again["project_ids"] == [2]
     assert [q["filter_name"] for q in client.get("/api/stp/settings?user_id=7").json()] == ["My Q"]
-    assert client.get("/api/stp/settings?user_id=8").json() == []
+    other = {"x-user-email": "other@corp.com"}
+    assert client.get("/api/stp/settings", headers=other).json() == []
+    sid = first["stp_setting_id"]
+    assert client.get(f"/api/stp/settings/{sid}/apply", headers=other).status_code == 404
+    assert client.delete(f"/api/stp/settings/{sid}", headers=other).status_code == 404
+    assert client.get("/api/stp/settings", headers={"x-user-email": ""}).status_code == 401
+    assert client.get("/api/stp/settings", headers={"x-user-email": "nobody@corp.com"}).status_code == 403
     applied = client.get(f"/api/stp/settings/{first['stp_setting_id']}/apply").json()
     assert applied["project_ids"] == [2] and applied["months"][-1] == "2028-08"
     assert client.delete(f"/api/stp/settings/{first['stp_setting_id']}").status_code == 204

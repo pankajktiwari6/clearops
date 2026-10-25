@@ -3,7 +3,7 @@ from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api import stp_logic as logic
@@ -13,6 +13,7 @@ from app.models.project_stp import ProjectSTP
 from app.models.project_stp_setting import ProjectSTPSetting
 from app.models.project_wbs import ProjectWBS
 from app.models.rate_card import RateCard
+from app.models.user import User
 from app.models.resource import Resource
 from app.schemas.project_stp_setting import ProjectSTPSettingResponse
 
@@ -44,25 +45,43 @@ def timeline(body: TimelineRequest, db: Session = Depends(get_db)):
     return logic.build_timeline(_windows(db, body.project_ids), today())
 
 
+def current_user(db: Session = Depends(get_db), x_user_email: str = Header("")) -> User:
+    """The logged-in ClearOps user. The gateway sets x-user-email from the validated SSO token."""
+    email = x_user_email.strip().lower()
+    if not email:
+        raise HTTPException(401, "Not signed in")
+    user = db.scalars(select(User).where(func.lower(User.Email) == email)).first()
+    if not user:
+        raise HTTPException(403, f"No ClearOps user for {email}")
+    return user
+
+
+def _own_setting(db: Session, setting_id: int, user: User) -> ProjectSTPSetting:
+    row = db.get(ProjectSTPSetting, setting_id)
+    if not row or row.UserId != user.UserID:  # other users' queries look nonexistent
+        raise HTTPException(404, "Not found")
+    return row
+
+
 # ---- saved queries -------------------------------------------------------------------------------------------
 
 class SaveQueryRequest(BaseModel):
-    user_id: int
     filter_name: str = Field(min_length=1, max_length=200)
     project_ids: list[int] = Field(min_length=1)
 
 
 @router.get("/settings", response_model=list[ProjectSTPSettingResponse])
-def list_queries(user_id: int, db: Session = Depends(get_db)):
-    """Saved queries for the dropdown next to Save."""
+def list_queries(db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """The logged-in user's saved queries, for the dropdown next to Save."""
     return db.scalars(
-        select(ProjectSTPSetting).where(ProjectSTPSetting.UserId == user_id).order_by(ProjectSTPSetting.FilterName)
+        select(ProjectSTPSetting).where(ProjectSTPSetting.UserId == user.UserID).order_by(ProjectSTPSetting.FilterName)
     ).all()
 
 
 @router.post("/settings", response_model=ProjectSTPSettingResponse)
-def save_query(body: SaveQueryRequest, db: Session = Depends(get_db), x_user: str = Header("clearops-api")):
-    """Save (or overwrite, same user + name) the current project selection."""
+def save_query(body: SaveQueryRequest, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Save (or overwrite, same login + name) the current project selection."""
+    x_user = user.Email or "clearops-api"
     ids = list(dict.fromkeys(body.project_ids))
     projects = {p.ProjectId: p for p in db.scalars(select(Project).where(Project.ProjectId.in_(ids)))}
     missing = sorted(set(ids) - set(projects))
@@ -77,12 +96,12 @@ def save_query(body: SaveQueryRequest, db: Session = Depends(get_db), x_user: st
         for i in ids
     }
     row = db.scalars(select(ProjectSTPSetting).where(
-        ProjectSTPSetting.UserId == body.user_id, ProjectSTPSetting.FilterName == name)).first()
+        ProjectSTPSetting.UserId == user.UserID, ProjectSTPSetting.FilterName == name)).first()
     if row:
         row.ProjectIds, row.SelectedProjects = ids, selected
         row.GoldModifiedBy, row.GoldModifiedDate = x_user, datetime.now(timezone.utc).replace(tzinfo=None)
     else:
-        row = ProjectSTPSetting(UserId=body.user_id, FilterName=name, ProjectIds=ids, SelectedProjects=selected,
+        row = ProjectSTPSetting(UserId=user.UserID, FilterName=name, ProjectIds=ids, SelectedProjects=selected,
                                 GoldCreatedBy=x_user)
         db.add(row)
     db.commit()
@@ -91,19 +110,15 @@ def save_query(body: SaveQueryRequest, db: Session = Depends(get_db), x_user: st
 
 
 @router.get("/settings/{setting_id}/apply")
-def apply_query(setting_id: int, db: Session = Depends(get_db)):
+def apply_query(setting_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
     """Selecting a saved query filters the grid to its projects (and returns their timeline)."""
-    row = db.get(ProjectSTPSetting, setting_id)
-    if not row:
-        raise HTTPException(404, "Not found")
+    row = _own_setting(db, setting_id, user)
     return {"project_ids": row.ProjectIds, **logic.build_timeline(_windows(db, row.ProjectIds), today())}
 
 
 @router.delete("/settings/{setting_id}", status_code=204)
-def delete_query(setting_id: int, db: Session = Depends(get_db)):
-    row = db.get(ProjectSTPSetting, setting_id)
-    if not row:
-        raise HTTPException(404, "Not found")
+def delete_query(setting_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    row = _own_setting(db, setting_id, user)
     db.delete(row)
     db.commit()
 
