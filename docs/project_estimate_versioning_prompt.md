@@ -52,6 +52,10 @@ Output the gap table first, then change only what the table marks Partial or Mis
 2. `Total = Qty × Hrs × Rate`; task Subtotal = Σ role totals; Estimate Revenue = Σ subtotals. **Recompute on the server too – never trust client totals.**
 3. **Known defect – fix with root cause + unit test:** `21 × 10 × 159` must be **$33,390**, but the screenshot shows **$3,358,080** (also propagated to subtotal and header). Find the cause (stale state / unparsed string / wrong multiplier).
 4. **No persistence on change, blur or dropdown select.** Edits live in local draft state; track dirty roles; drive the unsaved-changes banner from it; warn on navigation while dirty.
+   - **Auto-save is forbidden on the Qty, Hrs and Rate text fields and the role dropdown.** No network call, no debounce or timer save, no `onChange` / `onBlur` / `onKeyUp` / Enter-key save, no save on row collapse, tab change, modal open or unmount.
+   - Audit the existing code for any such behaviour (event handlers, `useEffect` watchers, debounced calls, form `onSubmit`, `beforeunload` handlers). **Remove it** if found, and list each removal in the gap table.
+   - The Enter key in a field must not submit anything.
+   - Opening Version History with unsaved edits must not save them; it warns and keeps the draft.
 5. Persist **only** when the user clicks **Save Estimate** (disable button + spinner while in flight; on failure keep the draft and show the error; on success clear dirty state and reload).
 
 ## 3. STEP 2 – SAVE (single atomic transaction)
@@ -132,6 +136,7 @@ Button **Version History** opens modal **"Estimate Version History"**.
 
 ## 8. TESTS (required – show passing output)
 1. Edit without Save → no DB write; banner counts dirty roles.
+1a. Type in Qty/Hrs/Rate, blur, press Enter, wait past any debounce, collapse the row, open Version History → **zero** save requests (assert on the network mock). Only the Save Estimate click sends exactly one request.
 2. Save → main-table rows + version N with correct totals and summary text.
 3. No-op save → no new version.
 4. Two concurrent saves → distinct consecutive versions, no duplicate-key error.
