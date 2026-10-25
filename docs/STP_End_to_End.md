@@ -47,7 +47,8 @@ Prerequisites: each login email exists in `gold.ClearOps_Users.Email`; `Project_
 2. Service reads `Project_End_Date` per project → `build_timeline`: months = current → max end month;
    per project `editable_months` (current → its end) and `rate_editable`.
 3. UI renders those columns and disables rate/hours inputs outside each project's `editable_months`.
-   No saved query is needed – this is the default path.
+   No saved query is needed – this is the default path: the existing project drop-down keeps working and the
+   user can select any projects and view their data.
 
 ### B. Save a query
 1. Select ≥ 1 project → **Save Query** enabled → modal (Enter Query Name) → Save.
@@ -58,7 +59,8 @@ Prerequisites: each login email exists in `gold.ClearOps_Users.Email`; `Project_
 
 ### C. Apply a query
 Dropdown selection → `GET /stp/settings/{id}/apply` → UI sets the project selector to `project_ids` and loads
-the grid with the returned timeline. "No saved query" keeps manual selection untouched.
+the grid with the returned timeline. "No saved query" (the default) keeps the existing functionality: the user selects projects from the drop-down and
+views the data; selection is never blocked by the absence of a saved query.
 
 ### D. Edit hours (resource propagation + capacity)
 1. User types hours for resource R in project A, month M → store updated optimistically, input capped at
@@ -74,7 +76,9 @@ the grid with the returned timeline. "No saved query" keeps manual selection unt
 1. Run the DDL above (or `Base.metadata.create_all` in a non-prod DB).
 2. Deploy the gateway and project service; set `AAD_TENANT_ID`, `AAD_CLIENT_ID`, `AUTH_ENABLED=true`
    (`DEV_USER_EMAIL` only for local dev with auth off).
-3. Build the frontend using Part C of `docs/STP.md`.
+3. Build the frontend using Part C of `docs/STP.md`. Where an STP implementation already exists (month range,
+   editability, saved queries, tooltip/totals, capacity), replace it with the new behaviour rather than adding a
+   second copy; remove the superseded code and tests.
 
 ## 5. Verification
 * Backend: `cd clearops_microservices && python -m pytest tests -q` (needs `pip install -r
@@ -83,7 +87,8 @@ the grid with the returned timeline. "No saved query" keeps manual selection unt
   - [ ] P1 only → columns end at P1's end month; P1 cells locked after it.
   - [ ] P1+P2+P3 → columns end at the max end month; each project locks at its own end month.
   - [ ] Save Query disabled with no project; save "My Q" → appears in dropdown for me, not for another user.
-  - [ ] Select "My Q" → projects filter; choose none → manual selection still shows data.
+  - [ ] Select "My Q" → projects filter; choose none → pick projects from the drop-down and data still shows.
+  - [ ] No old/duplicate STP logic remains after the change (replaced, not layered).
   - [ ] Edit R's hours in P1 → tooltip/totals in P2 update without reload.
   - [ ] Entering hours beyond (working days × 8 − other-project hours) is blocked client- and server-side.
   - [ ] Editing a month after the project end date is rejected.

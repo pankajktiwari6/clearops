@@ -13,8 +13,8 @@ Backend lives in `ClearOps_App/app/api/stp.py` (endpoints) and `stp_logic.py` (p
    to **that project's own** end month.
 2. **Saved queries** – *Save Query* button (disabled until a project is selected) → popup with **Enter Query Name**,
    Save, Cancel → saved per logged-in user in `stp_settings` → shown in a dropdown next to Save → selecting one
-   filters the grid to its projects. If no saved query is selected, the user picks projects manually and views
-   data exactly as before.
+   filters the grid to its projects. If no saved query is selected, existing functionality stays in place: the user
+   selects projects from the project drop-down and views data exactly as before.
 3. **Resource consistency** – when a resource's hours change, the hover tooltip, calculations and project totals
    update everywhere that resource is tagged.
 4. **No over-allocation** – a resource's total across all projects can never exceed its capacity (max 8 h per
@@ -84,7 +84,10 @@ Paste everything in this part into Claude Code in the **frontend** repo.
 You are a senior front-end engineer extending the ClearOps Strategic Time Planner page.
 1. Read the existing STP code first (grid, project sections, resource rows, tooltip, Save button, store) and
    reuse components, API client, styling and test setup. Add no new libraries.
-2. Change only what is listed; keep all other behaviour identical.
+2. **If an implementation of a listed feature already exists** (month range, editability, saved queries,
+   tooltip/total calculations, capacity checks), **replace it** with the behaviour specified here – delete the
+   old logic and its dead code/tests instead of layering a second version on top. Only add what is missing.
+   Change nothing unrelated; keep all other behaviour identical.
 3. The server is the source of truth for capacity, end-date windows and ownership; client checks are only for
    fast feedback. Never send a user id.
 4. Work in the order below; run lint, type-check and tests after each step; finish with a summary.
@@ -101,8 +104,9 @@ You are a senior front-end engineer extending the ClearOps Strategic Time Planne
   Esc cancels, focus trapped and restored. Save → `POST /stp/settings`, close, refresh list, preselect, toast.
   Confirm before overwriting an existing name.
 - Dropdown beside Save: my queries (alphabetical) plus an empty "No saved query" option (default).
-- **A saved query is optional.** With none selected, the page works as before: pick projects in the project
-  selector and view the data. Selecting a query → `apply` → set the project selector to its `project_ids`
+- **A saved query is optional.** With none selected (the default), the existing functionality stays in place:
+  the user can open the **project drop-down**, select one or more projects and view their data; the timeline,
+  editing rules and resource checks apply to that manual selection exactly as they do for a saved query. Selecting a query → `apply` → set the project selector to its `project_ids`
   (still editable) and load the grid. Clearing the dropdown keeps current projects and data (no reset).
   Skip saved projects that no longer exist and show a notice. Optional delete icon (confirm, then `DELETE`).
 
