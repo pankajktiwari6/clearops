@@ -77,6 +77,12 @@ rows (joined to `ProjectWBS.Project_Id`), so nothing is stored twice and nothing
   **other projects** hours, **remaining** hours and % (negative ⇒ `over_allocated`).
 * Project totals (hours and value per month and in total) are recomputed from the rows.
 
+**Over-allocation is blocked.** A resource's hours summed across *all* projects in a month must not exceed
+its capacity. `PUT /api/stp/cell` returns **422** ("Over-allocation: … at most N h allowed here") and saves
+nothing when the new value would push `remaining_hours` below 0. Lowering hours is always allowed (so legacy
+over-allocated data can be fixed). Resources with no `WeeklyHours` have no cap. The UI should also cap the
+input at `capacity − other_projects_hours` using the tooltip data and show a validation message.
+
 `PUT /api/stp/cell` `{resource_id, task_id, year_month, hours, rate?}` saves the cell (value = hours × rate;
 rate falls back to the row's rate card) and returns, in one response:
 ```json

@@ -137,3 +137,16 @@ def test_cell_update_propagates_and_enforces_end_date(client):
     assert put(10, "2027-07", 5).status_code == 422  # after project 1 end date
     assert put(20, "2027-07", 5).status_code == 200  # project 2 still running
     assert put(10, "2026-09", 5).status_code == 422  # past month
+
+
+def test_resource_cannot_be_over_allocated(client):
+    put = lambda task, h: client.put("/api/stp/cell", json={
+        "resource_id": 5, "task_id": task, "year_month": "2026-11", "hours": h, "rate": 10})
+    assert put(10, 100).status_code == 200  # capacity = 40*52/12 = 173.33
+    r = put(20, 80)
+    assert r.status_code == 422 and "Over-allocation" in r.json()["detail"]
+    assert put(20, 73.33).status_code == 200  # exactly fills capacity
+    assert put(10, 101).status_code == 422
+    assert put(10, 50).status_code == 200  # reducing is always allowed
+    s = client.get("/api/stp/resources/5/summary?year_month=2026-11&project_id=1").json()["tooltip"]
+    assert s["this_project_hours"] == 50 and not s["over_allocated"]

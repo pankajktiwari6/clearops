@@ -43,6 +43,7 @@ Handle errors with a toast; do not lose the user's current selection on failure.
   red when `over_allocated`) from `tooltip`. No stale values anywhere after a save.
 - Tooltips on hover must read from the same shared client store keyed by `resource_id + year_month`, not from
   per-row copies. Optimistically update the store on input, reconcile with the response, roll back on error.
+- **Never over-allocate:** limit each hours input to `capacity − other_projects_hours` for that resource/month, show an inline message when exceeded, and surface the server's 422 ("Over-allocation …") by reverting the cell. Lowering hours is always allowed.
 - Rate edits must also recalculate value (hours × rate) for the resource's editable months in all projects.
 
 ## 4. Acceptance checklist
@@ -50,6 +51,7 @@ Handle errors with a toast; do not lose the user's current selection on failure.
 - [ ] Save Query disabled with no projects; modal flow works; dropdown lists only my queries.
 - [ ] Selecting a query filters the grid to its projects; otherwise nothing changes.
 - [ ] Editing a resource in project A updates its tooltip and totals in project B in the same view.
+- [ ] A resource cannot exceed monthly capacity across projects (client cap + server 422).
 - [ ] Server 422 (outside end date) is surfaced and the cell reverts.
 - [ ] Unit tests for the editability helper and the shared store; existing tests still pass.
 

@@ -181,9 +181,20 @@ def update_cell(body: CellUpdate, db: Session = Depends(get_db), x_user: str = H
     if rate is None and row.RateCardId:
         rc = db.get(RateCard, row.RateCardId)
         rate = float(rc.Rate) if rc and rc.Rate is not None else None
+    old_hours = float(row.MonthlyHours or 0)
     row.MonthlyHours = body.hours
     row.MonthlyValue = round(body.hours * rate, 2) if rate is not None else row.MonthlyValue
     if row.ProjectSTPId:
         row.GoldModifiedBy, row.GoldModifiedDate = x_user, datetime.now(timezone.utc).replace(tzinfo=None)
+    db.flush()
+    result = _refresh(db, body.resource_id, wbs.ProjectId, body.year_month)
+    tip = result["tooltip"]
+    # Never allow a save that over-allocates the resource (total across ALL projects > monthly capacity).
+    # Lowering hours is always allowed so an already over-allocated resource can be fixed.
+    if tip["over_allocated"] and body.hours > old_hours:
+        db.rollback()
+        raise HTTPException(422, f"Over-allocation: {body.year_month} capacity {tip['capacity_hours']} h, "
+                                 f"already {tip['other_projects_hours']} h on other projects; "
+                                 f"at most {round(tip['capacity_hours'] - tip['other_projects_hours'], 2)} h allowed here")
     db.commit()
-    return _refresh(db, body.resource_id, wbs.ProjectId, body.year_month)
+    return result
