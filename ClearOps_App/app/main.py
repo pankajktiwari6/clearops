@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.crud import MAPPING, build_routers
+from app.api.stp import router as stp_router
 from app.core.config import settings
 
 def create_app(title: str = "ClearOps_App", tables: set[str] | None = None) -> FastAPI:
@@ -12,6 +13,8 @@ def create_app(title: str = "ClearOps_App", tables: set[str] | None = None) -> F
     )
     for router in build_routers(tables):
         app.include_router(router, prefix="/api")
+    if tables is None or "ProjectSTP" in tables:
+        app.include_router(stp_router, prefix="/api")
 
     @app.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

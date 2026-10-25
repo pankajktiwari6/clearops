@@ -34,6 +34,7 @@ def test_service_exposes_only_its_tables(domain):
     assert c.get("/health").json() == {"status": "ok"}
     paths = c.get("/openapi.json").json()["paths"]
     prefixes = {p.split("/")[2] for p in paths if p.startswith("/api/") and p != "/api/column-mapping"}
+    prefixes.discard("stp")  # hand-written STP endpoints, served by the project service alongside ProjectSTP
     assert prefixes == {MAPPING[t]["table"].lower() for t in mod.TABLES}
     assert set(c.get("/api/column-mapping").json()) == mod.TABLES
 

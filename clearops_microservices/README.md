@@ -19,7 +19,7 @@ React/TS web app --SSO--> Azure AD
 |---|---|
 | setup | Resource, LOB, Grade, FXRate, RateCard, Holiday, Passthrough, Employee |
 | timeplanner | ProjectTimePlanner, Team, TimeOff, **WorkdayEmployeeTimeOff** |
-| project | Project, ProjectWBS, ProjectEstimator, ProjectSTP, SalesforceOpportunity, **OTLTimecard**, **ProjectTimecard** |
+| project | Project, ProjectWBS, ProjectEstimator, ProjectSTP, **ProjectSTPSetting**, SalesforceOpportunity, **OTLTimecard**, **ProjectTimecard** |
 | admin | AdminIntegrationStatus, Role, User, Page, Access, Permission, Login, Log, UserLogin |
 
 Bold = added from the updated design sheet (plus `Holiday.Holiday_month`).

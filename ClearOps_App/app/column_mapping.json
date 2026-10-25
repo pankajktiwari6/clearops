@@ -4889,6 +4889,103 @@
           "has_default": false
         }
       ]
+    },
+    "ProjectSTPSetting": {
+      "schema": "gold",
+      "table": "ClearOps_STPSettings",
+      "orm_model": "ProjectSTPSetting",
+      "orm_module": "app.models.project_stp_setting",
+      "api_schema_module": "app.schemas.project_stp_setting",
+      "mixin": "GoldAuditColumnsMixin",
+      "primary_key": [
+        "STP_Setting_Id"
+      ],
+      "columns": [
+        {
+          "db_column": "STP_Setting_Id",
+          "orm_attribute": "STPSettingId",
+          "api_field": "stp_setting_id",
+          "label": "Stp Setting Id",
+          "sql_type": "BigInteger",
+          "python_type": "int",
+          "nullable": false,
+          "primary_key": true,
+          "identity": true,
+          "references": null,
+          "server_generated": true,
+          "has_default": false
+        },
+        {
+          "db_column": "User_Id",
+          "orm_attribute": "UserId",
+          "api_field": "user_id",
+          "label": "User Id",
+          "sql_type": "BigInteger",
+          "python_type": "int",
+          "nullable": false,
+          "primary_key": false,
+          "identity": false,
+          "references": "gold.ClearOps_Users.User_ID",
+          "server_generated": false,
+          "has_default": false
+        },
+        {
+          "db_column": "Filter_Name",
+          "orm_attribute": "FilterName",
+          "api_field": "filter_name",
+          "label": "Filter Name",
+          "sql_type": "String(200)",
+          "python_type": "str",
+          "nullable": false,
+          "primary_key": false,
+          "identity": false,
+          "references": null,
+          "server_generated": false,
+          "has_default": false
+        },
+        {
+          "db_column": "Project_Ids",
+          "orm_attribute": "ProjectIds",
+          "api_field": "project_ids",
+          "label": "Project Ids",
+          "sql_type": "JSON",
+          "python_type": "list",
+          "nullable": false,
+          "primary_key": false,
+          "identity": false,
+          "references": null,
+          "server_generated": false,
+          "has_default": false
+        },
+        {
+          "db_column": "Selected_Projects",
+          "orm_attribute": "SelectedProjects",
+          "api_field": "selected_projects",
+          "label": "Selected Projects",
+          "sql_type": "JSON",
+          "python_type": "dict",
+          "nullable": true,
+          "primary_key": false,
+          "identity": false,
+          "references": null,
+          "server_generated": false,
+          "has_default": false
+        },
+        {
+          "db_column": "Date_Time",
+          "orm_attribute": "DateTime",
+          "api_field": "date_time",
+          "label": "Date Time",
+          "sql_type": "DateTime",
+          "python_type": "datetime",
+          "nullable": true,
+          "primary_key": false,
+          "identity": false,
+          "references": null,
+          "server_generated": false,
+          "has_default": true
+        }
+      ]
     }
   }
 }
