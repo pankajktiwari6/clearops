@@ -35,7 +35,7 @@ The server re-validates on save (`PUT /api/stp/cell` → 422 outside the window)
 
 ## 2. Saved queries (STP settings)
 
-Table `gold.ClearOps_STPSettings` (model `ProjectSTPSetting`, mapped in `column_mapping.json`):
+Table `stp_settings` = `gold.ClearOps_STPSettings` (model `ProjectSTPSetting`, mapped in `column_mapping.json`):
 
 | Column | Type | Notes |
 |---|---|---|
@@ -64,7 +64,8 @@ UI flow
 3. Save → `POST /api/stp/settings` `{filter_name, project_ids}`; re-using a name overwrites that query.
 4. The dropdown next to Save is filled from `GET /api/stp/settings`.
 5. Choosing a query → `GET /api/stp/settings/{id}/apply` returns `project_ids` (+ timeline) – set the project
-   filter to them. Not choosing one leaves the existing behaviour untouched. `DELETE /api/stp/settings/{id}` removes one.
+   filter to them. Not choosing one leaves the existing behaviour untouched: the user selects projects manually in the project
+   selector and views the data as before (a saved query only pre-fills that selection, and can be edited afterwards). `DELETE /api/stp/settings/{id}` removes one.
 
 Generic CRUD for the table is also exposed at `/api/clearops_stpsettings` (project service).
 

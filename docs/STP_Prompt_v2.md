@@ -42,9 +42,16 @@ over-allocation** (show `detail` in a toast/inline message and revert the cell).
   **Save** and **Cancel**. Enter = save, Esc = cancel, focus trapped, focus returns to the button on close.
 - Save → `POST /stp/settings`; on success close the modal, refresh the list, preselect the new query, toast.
   Reusing a name overwrites – confirm with the user first if the name already exists in the list.
-- Dropdown beside Save lists my queries (alphabetical) with an empty "No saved query" option.
-  Selecting a query → `apply` → set the project filter to `project_ids` and reload the grid.
-  Selecting "No saved query" or changing the selection manually leaves current behaviour untouched.
+- Saved queries live in the `stp_settings` table (`gold.ClearOps_STPSettings`), always per logged-in user.
+- Dropdown beside Save lists my queries (alphabetical) with an empty "No saved query" option (the default).
+- **A saved query is optional.** If the user has not selected one (default, or "No saved query"), the page
+  works exactly as today: the user picks projects in the project selector and the grid loads their data
+  (timeline call + existing data call) – saving a query is never required to view data.
+- **If the user selects a saved query**, `apply` it: set the project selector to the returned `project_ids`
+  (visible and still editable) and load the grid for them. Afterwards the user may add/remove projects freely;
+  that does not change the saved query unless they press Save Query again.
+- Clearing the dropdown keeps the currently selected projects and data on screen (no reset, no blank grid).
+- If a saved project no longer exists/is not accessible, skip it, load the rest and show a notice.
 - Optional delete icon per option (confirm, then `DELETE`).
 
 ## 3 · Resource consistency and no over-allocation
@@ -67,7 +74,8 @@ over-allocation** (show `detail` in a toast/inline message and revert the cell).
 
 ## 5 · Done when
 - [ ] Columns and editability match the examples; locked cells cannot be edited.
-- [ ] Save Query is disabled with no selection; modal, save, list and apply work; only my queries appear.
+- [ ] With no saved query selected, the user can pick projects and view data as before.
+- [ ] Save Query is disabled with no selection; modal, save, list and apply (from `stp_settings`) work; only my queries appear.
 - [ ] Editing a resource in project A updates its tooltip and totals in project B immediately.
 - [ ] A resource can never exceed monthly capacity across projects (client cap + server 422 handled).
 - [ ] Lint, type-check and tests pass; no unrelated changes.
