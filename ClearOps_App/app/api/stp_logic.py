@@ -2,17 +2,19 @@
 
 * Display months: current month .. latest end month of the selected projects.
 * Editing: a project's rate and monthly forecast cells are editable current month .. its own end month.
+* Capacity: working days (Mon-Fri) in the month x min(8 h, WeeklyHours / 5). Holidays/time off are not deducted.
 * Resource totals: one resource tagged on several projects is summed per month so every tooltip and
   project-level total is derived from the same rows (single source of truth).
 """
 from __future__ import annotations
 
+import calendar
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
 
 DEFAULT_HORIZON_MONTHS = 12  # used when no selected project has an end date
-WEEKS_PER_YEAR = 52
+MAX_DAILY_HOURS = 8.0  # a resource is never planned for more than 8 h per working day
 
 
 def month_key(d: date) -> str:
@@ -71,8 +73,16 @@ def build_timeline(projects: list[ProjectWindow], today: date) -> dict:
     return {"months": months, "projects": out}
 
 
-def monthly_capacity(weekly_hours: float | None) -> float | None:
-    return None if weekly_hours is None else round(float(weekly_hours) * WEEKS_PER_YEAR / 12, 2)
+def working_days(year_month: str) -> int:
+    y, m = int(year_month[:4]), int(year_month[5:7])
+    first_wd, days = calendar.monthrange(y, m)  # Monday = 0
+    return sum(1 for d in range(days) if (first_wd + d) % 7 < 5)
+
+
+def monthly_capacity(weekly_hours: float | None, year_month: str) -> float:
+    """Total hours a resource can be planned in a month: working days x daily hours, capped at 8 h/day."""
+    daily = MAX_DAILY_HOURS if not weekly_hours else min(MAX_DAILY_HOURS, float(weekly_hours) / 5)
+    return round(working_days(year_month) * daily, 2)
 
 
 @dataclass(frozen=True)
@@ -95,8 +105,8 @@ def resource_month_summary(
                 this += a.hours
             else:
                 other += a.hours
-    cap = monthly_capacity(weekly_hours)
-    remaining = None if cap is None else round(cap - this - other, 2)
+    cap = monthly_capacity(weekly_hours, year_month)
+    remaining = round(cap - this - other, 2)
     return {
         "resource_id": resource_id,
         "year_month": year_month,
@@ -104,8 +114,8 @@ def resource_month_summary(
         "this_project_hours": round(this, 2),
         "other_projects_hours": round(other, 2),
         "remaining_hours": remaining,
-        "remaining_pct": None if not cap else round(remaining / cap * 100, 1),
-        "over_allocated": remaining is not None and remaining < 0,
+        "remaining_pct": round(remaining / cap * 100, 1) if cap else None,
+        "over_allocated": remaining < 0,
     }
 
 

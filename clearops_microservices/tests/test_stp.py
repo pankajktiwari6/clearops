@@ -52,7 +52,7 @@ def test_resource_summary_sums_across_projects():
          L.Allocation(5, 2, "2026-12", 10, 1200)]
     s = L.resource_month_summary(a, 5, "2026-11", 1, 40)
     assert (s["this_project_hours"], s["other_projects_hours"]) == (20, 40)
-    assert s["remaining_hours"] == round(40 * 52 / 12 - 60, 2)
+    assert s["remaining_hours"] == round(L.working_days("2026-11") * 8 - 60, 2)
     assert L.project_totals(a)[2]["total"] == {"hours": 50, "value": 6000}
 
 
@@ -139,13 +139,20 @@ def test_cell_update_propagates_and_enforces_end_date(client):
     assert put(10, "2026-09", 5).status_code == 422  # past month
 
 
+def test_capacity_is_working_days_times_max_8h():
+    assert L.working_days("2026-11") == 21
+    assert L.monthly_capacity(40, "2026-11") == 168 and L.monthly_capacity(None, "2026-11") == 168
+    assert L.monthly_capacity(50, "2026-11") == 168  # never above 8 h/day
+    assert L.monthly_capacity(20, "2026-11") == 84  # part-time 4 h/day
+
+
 def test_resource_cannot_be_over_allocated(client):
     put = lambda task, h: client.put("/api/stp/cell", json={
         "resource_id": 5, "task_id": task, "year_month": "2026-11", "hours": h, "rate": 10})
-    assert put(10, 100).status_code == 200  # capacity = 40*52/12 = 173.33
+    assert put(10, 100).status_code == 200  # Nov 2026: 21 working days x 8 h = 168
     r = put(20, 80)
     assert r.status_code == 422 and "Over-allocation" in r.json()["detail"]
-    assert put(20, 73.33).status_code == 200  # exactly fills capacity
+    assert put(20, 68).status_code == 200  # exactly fills capacity
     assert put(10, 101).status_code == 422
     assert put(10, 50).status_code == 200  # reducing is always allowed
     s = client.get("/api/stp/resources/5/summary?year_month=2026-11&project_id=1").json()["tooltip"]

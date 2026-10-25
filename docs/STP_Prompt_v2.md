@@ -62,7 +62,7 @@ over-allocation** (show `detail` in a toast/inline message and revert the cell).
   hours × rate). On error, roll back to the last saved value and show the message.
 - Cap each hours input at `capacity − other_projects_hours` (from the store). Above the cap: inline error
   "Only N h left for <resource> in <month>", do not send. The server still enforces this (422).
-  Lowering hours is always allowed. Resources without capacity data have no cap.
+  Lowering hours is always allowed. Capacity is always defined (max 8 h per working day), so every resource is capped.
 - Tooltip content: capacity remaining (hrs and %), this project hrs, other projects hrs. Remaining < 0 shown red.
 - A rate change recalculates value for that resource's editable months in every project it is tagged on.
 

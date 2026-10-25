@@ -74,14 +74,14 @@ Generic CRUD for the table is also exposed at `/api/clearops_stpsettings` (proje
 A resource can be tagged on several projects. Every figure is derived from the same `ClearOps_ProjectSTP`
 rows (joined to `ProjectWBS.Project_Id`), so nothing is stored twice and nothing goes stale:
 
-* Tooltip per resource/month: `capacity` (= `Resources.WeeklyHours × 52 / 12`), **this project** hours,
+* Tooltip per resource/month: `capacity` (= working days Mon–Fri in the month × daily hours, where daily hours = `min(8, Resources.WeeklyHours / 5)`, 8 if unknown; holidays/time off are not deducted), **this project** hours,
   **other projects** hours, **remaining** hours and % (negative ⇒ `over_allocated`).
 * Project totals (hours and value per month and in total) are recomputed from the rows.
 
 **Over-allocation is blocked.** A resource's hours summed across *all* projects in a month must not exceed
 its capacity. `PUT /api/stp/cell` returns **422** ("Over-allocation: … at most N h allowed here") and saves
 nothing when the new value would push `remaining_hours` below 0. Lowering hours is always allowed (so legacy
-over-allocated data can be fixed). Resources with no `WeeklyHours` have no cap. The UI should also cap the
+over-allocated data can be fixed). A resource is never planned above **8 h per working day**, so its monthly total (all projects) can never exceed that capacity. The UI should also cap the
 input at `capacity − other_projects_hours` using the tooltip data and show a validation message.
 
 `PUT /api/stp/cell` `{resource_id, task_id, year_month, hours, rate?}` saves the cell (value = hours × rate;
