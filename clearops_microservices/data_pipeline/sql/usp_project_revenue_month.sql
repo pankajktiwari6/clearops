@@ -1,7 +1,6 @@
 -- Revenue by project for one month, optionally limited to selected projects.
 --   @ProjectNumbers : comma-separated Project_Numbers (e.g. 'P-100,P-200'); NULL/empty = all projects.
---   @AsOfDate       : any date inside the month wanted; NULL = month of the latest TIME_ENTRY_DATE
---                     in gold.OTL_Timecard (the "current month" of the loaded data).
+--   @AsOfDate       : any date inside the month wanted; NULL = the current calendar month (today).
 CREATE OR ALTER PROCEDURE gold.usp_project_revenue_month
     @ProjectNumbers NVARCHAR(MAX) = NULL,
     @AsOfDate       DATE          = NULL
@@ -9,7 +8,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SET @AsOfDate = COALESCE(@AsOfDate, (SELECT MAX(TIME_ENTRY_DATE) FROM gold.OTL_Timecard));
+    SET @AsOfDate = COALESCE(@AsOfDate, CAST(GETDATE() AS DATE));
     DECLARE @MonthStart DATE = DATEFROMPARTS(YEAR(@AsOfDate), MONTH(@AsOfDate), 1);
     DECLARE @MonthEnd   DATE = DATEADD(MONTH, 1, @MonthStart);
 
@@ -45,6 +44,6 @@ BEGIN
 END;
 GO
 -- Examples:
---   EXEC gold.usp_project_revenue_month;                                          -- all projects, latest month
+--   EXEC gold.usp_project_revenue_month;                                          -- all projects, current month
 --   EXEC gold.usp_project_revenue_month @ProjectNumbers = 'P-100,P-200';          -- selected projects
 --   EXEC gold.usp_project_revenue_month 'P-100', '2026-10-15';                    -- selected, specific month
